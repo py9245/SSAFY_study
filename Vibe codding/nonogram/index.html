@@ -7,19 +7,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1 class="main-title">노노그램 숫자 → 이미지 변환기</h1>
-    <div class="center-area">
-      <div id="input-area" class="card">
-        <div class="row">
-          <label for="board-rows">행 개수</label>
-          <input type="number" id="board-rows" min="1" max="30" value="5">
-          <label for="board-cols">열 개수</label>
-          <input type="number" id="board-cols" min="1" max="30" value="5">
-          <button id="make-board-btn" class="main-btn">보드 만들기</button>
-        </div>
-        <div id="numbers-input-area" style="margin-top:20px;"></div>
+    <div class="ig-bg">
+      <div class="ig-header">
+        <span class="ig-logo">🧩</span>
+        <span class="ig-title">노노그램 스튜디오</span>
       </div>
-      <div id="nonogram-output"></div>
+      <div class="center-area">
+        <div id="input-area" class="ig-card">
+          <div class="row row-top">
+            <div class="input-group">
+              <label for="board-rows">행</label>
+              <input type="number" id="board-rows" min="1" max="30" value="5" class="ig-input">
+            </div>
+            <div class="input-group">
+              <label for="board-cols">열</label>
+              <input type="number" id="board-cols" min="1" max="30" value="5" class="ig-input">
+            </div>
+            <button id="make-board-btn" class="ig-btn">보드 만들기</button>
+          </div>
+          <div id="numbers-input-area"></div>
+        </div>
+        <div id="nonogram-output"></div>
+        <div class="ig-desc">행/열 숫자는 <b>공백 또는 쉼표</b>로 구분해 입력하세요.<br>예시: <span class="ig-eg">3,1 2</span> 또는 <span class="ig-eg">3 1 2</span></div>
+      </div>
     </div>
     <script src="../../nonogram/script.js"></script>
 </body>

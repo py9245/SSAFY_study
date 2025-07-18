@@ -1,0 +1,121 @@
+body {
+  font-family: 'Segoe UI', 'Pretendard', Arial, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+  margin: 0;
+  min-height: 100vh;
+}
+
+.main-title {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 2.2rem;
+  color: #2d3a4b;
+  letter-spacing: 1px;
+}
+
+.center-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(60,80,120,0.10);
+  padding: 32px 28px 24px 28px;
+  min-width: 320px;
+  max-width: 420px;
+  margin-bottom: 30px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+label {
+  font-size: 1rem;
+  color: #3a4a5d;
+  margin-right: 4px;
+}
+
+input[type="number"], input[type="text"] {
+  border: 1px solid #c3cfe2;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  outline: none;
+  transition: border 0.2s;
+}
+input[type="number"]:focus, input[type="text"]:focus {
+  border: 1.5px solid #5b8def;
+}
+
+.main-btn {
+  background: linear-gradient(90deg, #5b8def 60%, #3a7bd5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(60,80,120,0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.main-btn:hover {
+  background: linear-gradient(90deg, #3a7bd5 60%, #5b8def 100%);
+  box-shadow: 0 4px 16px rgba(60,80,120,0.13);
+}
+
+#numbers-input-area {
+  margin-top: 18px;
+}
+
+#numbers-input-area input[type="text"] {
+  width: 120px;
+  margin-bottom: 6px;
+}
+
+#nonogram-output {
+  margin-top: 30px;
+  min-height: 40px;
+}
+
+.nonogram-table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(60,80,120,0.07);
+}
+.nonogram-table td {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #c3cfe2;
+  background: #f6f8fa;
+  transition: background 0.2s;
+}
+.nonogram-table .filled {
+  background: #222e3a;
+}
+
+@media (max-width: 600px) {
+  .card {
+    min-width: 90vw;
+    max-width: 98vw;
+    padding: 18px 6vw 16px 6vw;
+  }
+  .main-title {
+    font-size: 1.3rem;
+    margin-top: 18px;
+  }
+}

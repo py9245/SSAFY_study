@@ -1,4 +1,187 @@
 body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Segoe UI', 'Pretendard', 'Apple SD Gothic Neo', Arial, sans-serif;
+}
+.ig-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fdf6e3 0%, #f7e6f7 60%, #e6e8fa 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ig-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 38px;
+  margin-bottom: 18px;
+}
+.ig-logo {
+  font-size: 2.2rem;
+  margin-right: 10px;
+  filter: drop-shadow(0 2px 8px #fff4);
+}
+.ig-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #6a4fb6;
+}
+.center-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+}
+.ig-card {
+  background: #f9f7fd;
+  border-radius: 22px;
+  box-shadow: 0 4px 18px 0 rgba(100,30,100,0.07), 0 1.5px 8px 0 rgba(255,255,255,0.08);
+  padding: 32px 28px 24px 28px;
+  min-width: 320px;
+  max-width: 420px;
+  margin-bottom: 30px;
+  margin-top: 10px;
+  border: 2px solid #e6e8fa;
+  position: relative;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.row-top {
+  margin-bottom: 18px;
+}
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-right: 10px;
+}
+label {
+  font-size: 1.05rem;
+  color: #b48bbd;
+  margin-bottom: 2px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.ig-input {
+  border: 1.5px solid #e6e8fa;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+  outline: none;
+  background: #f7f6fa;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px #e6e8fa22;
+}
+.ig-input:focus {
+  border: 2px solid #b48bbd;
+  background: #fff;
+  box-shadow: 0 2px 8px #b48bbd33;
+}
+.ig-btn {
+  background: linear-gradient(90deg, #e6e8fa 10%, #eecff7 60%, #f9e7b7 100%);
+  color: #b48bbd;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #e6e8fa22;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  letter-spacing: 0.5px;
+}
+.ig-btn:hover {
+  background: linear-gradient(90deg, #f9e7b7 10%, #eecff7 60%, #e6e8fa 100%);
+  box-shadow: 0 4px 16px #e6e8fa33;
+  transform: translateY(-2px) scale(1.04);
+}
+#numbers-input-area {
+  margin-top: 10px;
+}
+#numbers-input-area > div {
+  margin-bottom: 10px;
+}
+#numbers-input-area input[type="text"] {
+  width: 120px;
+  margin-bottom: 6px;
+  background: #f7f6fa;
+  border: 1.5px solid #e6e8fa;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+#numbers-input-area input[type="text"]:focus {
+  border: 2px solid #b48bbd;
+  background: #fff;
+}
+#nonogram-output {
+  margin-top: 30px;
+  min-height: 40px;
+  text-align: center;
+}
+.nonogram-table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  background: #f9f7fd;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px #e6e8fa22;
+}
+.nonogram-table td {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #e6e8fa;
+  background: #f7f6fa;
+  transition: background 0.2s;
+}
+.nonogram-table .filled {
+  background: linear-gradient(135deg, #eecff7 60%, #f9e7b7 100%);
+  box-shadow: 0 1px 4px #e6e8fa33 inset;
+}
+.ig-desc {
+  margin-top: 10px;
+  color: #b48bbd;
+  font-size: 1.01rem;
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  text-shadow: 0 1px 8px #fff6;
+}
+.ig-eg {
+  background: #f7f6fa;
+  color: #b48bbd;
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-family: 'Consolas', 'Menlo', monospace;
+  font-size: 0.97em;
+  border: 1px solid #e6e8fa;
+  margin: 0 2px;
+}
+@media (max-width: 600px) {
+  .ig-card {
+    min-width: 90vw;
+    max-width: 98vw;
+    padding: 18px 6vw 16px 6vw;
+  }
+  .ig-title {
+    font-size: 1.2rem;
+  }
+  .nonogram-table td {
+    width: 18px;
+    height: 18px;
+  }
+}
+body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: #f8f8f8;
     margin: 0;
