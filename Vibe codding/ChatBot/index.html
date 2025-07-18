@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple ChatBot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button id="mode-toggle" style="position: absolute; top: 32px; right: 32px; z-index: 10; background: #fff6ed; color: #ff7f50; border: 2px solid #ffbe98; border-radius: 20px; padding: 8px 22px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(255,190,152,0.10); transition: background 0.2s, color 0.2s;">🌙 다크 모드</button>
+    <div class="chat-container">
+        <div id="chat-box" class="chat-box"></div>
+        <form id="chat-form">
+            <input type="text" id="user-input" placeholder="메시지를 입력하세요..." autocomplete="off" required />
+            <button type="submit">전송</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

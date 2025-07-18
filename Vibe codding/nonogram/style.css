@@ -1,0 +1,31 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f8f8f8;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+#input-area {
+    margin: 30px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    display: inline-block;
+}
+#nonogram-output {
+    margin-top: 30px;
+}
+.nonogram-table {
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+.nonogram-table td {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #bbb;
+    background: #fff;
+}
+.nonogram-table .filled {
+    background: #222;
+}
