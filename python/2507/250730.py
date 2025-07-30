@@ -15,6 +15,25 @@
 # a, *b, c = A
 # print(a,b,c)
 
-from my_package.math import my_math
+# A = [1,2,3]
+# B = A
+# C = [1,2,3]
+# print(id(A))
+# print(id(B))
+# print(id(C))
+# print()
+# print(id(A[0]))
+# print(id(B[0]))
+# print(id(C[0]))
+# print(id(1))
+# x = 140725989897000
 
-print(my_math.add(5,2))
+import copy
+
+a = [1,2,3]
+b = copy.deepcopy(a)
+print(id(a))
+print(id(b))
+for i in range(3):
+    print(id(a[i]))
+    print(id(b[i]))
