@@ -1,8 +1,12 @@
-print('add')
+# from pathlib import Path
 
-def add():
-    return (1 + 2)
+# current_path = Path.cwd()
+# print(current_path)
 
-print("wdw")
+# home_path = Path.home()
+# print(home_path)
 
-print(1 + 1)
+# A_path = Path
+
+A = {1 : 4, '1' : 4}
+print(A.keys())
