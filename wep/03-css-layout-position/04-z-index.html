@@ -7,7 +7,11 @@
   <title>Document</title>
   <style>
     .container {
+      box-sizing: border-box;
       position: relative;
+      width: 300px;
+      height: 300px;
+      border: 1px solid black;
     }
 
     .box {
@@ -18,23 +22,23 @@
 
     .red {
       background-color: red;
-      top: 50px;
-      left: 50px;
-      /* z-index: 3; */
+      top: 0px;
+      left: 0px;
+      z-index: 3;
     }
 
     .green {
       background-color: green;
-      top: 100px;
-      left: 100px;
-      /* z-index: 2; */
+      top: 50px;
+      left: 50px;
+      z-index: 2;
     }
 
     .blue {
       background-color: blue;
-      top: 150px;
-      left: 150px;
-      /* z-index: 1; */
+      top: 100px;
+      left: 100px;
+      z-index: 1;
     }
   </style>
 </head>
