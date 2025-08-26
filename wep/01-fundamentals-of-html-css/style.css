@@ -1,12 +1,4 @@
-body{
-    margin: auto;
-    padding: auto;
-}
-div{
-    display: flex;
-    align-items: center;
-}
 h3 {
-    color: violet;
-    background-color: greenyellow;
+  color: violet;
+  background-color: green;
 }
