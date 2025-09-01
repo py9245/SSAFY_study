@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p>국밥 메뉴는 {{plate_len}}글자 입니다.</p>
+    <h1>메뉴판</h1>
+    <ul>
+        {% for food in name %}
+            <li>{{ food }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

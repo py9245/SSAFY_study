@@ -38,5 +38,5 @@ def comb(arr, n):
 
     return result
 
-
-print(comb([1, 2, 3, 4], 3))
+for i in range(5):
+    print(comb([1, 2, 3, 4], i))
