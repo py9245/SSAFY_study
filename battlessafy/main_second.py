@@ -107,7 +107,6 @@ def parse_data(game_data):
         for j in range(0, len(col)):
             map_data[i][j] = col[j]
     row_index += map_height
-
     # 기존의 아군 정보를 초기화하고 다시 읽어오기
     my_allies.clear()
     for i in range(row_index, row_index + num_of_allies):
@@ -164,7 +163,7 @@ def print_data():
 ##############################
 # 닉네임 설정 및 최초 연결
 ##############################
-NICKNAME = '기본코드'
+NICKNAME = '진격'
 game_data = init(NICKNAME)
 
 
@@ -182,8 +181,11 @@ S_CMD = ["R F", "D F", "L F", "U F"]
 S_MEGA_CMD = ["R F M", "D F M", "L F M", "U F M"]
 
 
+# ★ get_map_size 괄호 보정 (우선순위 오류 방지)
 def get_map_size():
-    return len(map_data), len(map_data[0]) if map_data and map_data[0] else (0, 0)
+    if map_data and map_data[0]:
+        return len(map_data), len(map_data[0])
+    return (0, 0)
 
 
 def find_symbol(grid, symbol):
@@ -223,28 +225,23 @@ def caesar_decode(ciphertext, shift):
 
 
 def find_valid_caesar_decode(ciphertext):
-    """유효한 카이사르 해독 찾기"""
-    # 알려진 키워드 리스트 (확장 가능)
-    keywords = ["DON", "DAY","SUTMOSTMOVESTHEHEAVENS","ONE","IFYOUCANTBEATTHEMJOINTHEM", 
+    """유효한 카이사르 해독 찾기 (키워드 매칭)"""
+    keywords = ["DON", "DAY","SUTMOSTMOVESTHEHEAVENS","ONE","IFYOUCANTBEATTHEMJOINTHEM",
                 "THEDIFFICULTYINLIFEISTHECHOICE","THE", "ONLY", "ACTION","CUREFORGRIEFIS",
                 "SSAFY", "BATTLE", "PYTHON", "JAVA", "COME", "FOR", "ALGORITHM", "TANK",
                 "MISSION", "CODE", "HERO", "NOSWEATNOSWEET", "BELIEVEINYOURSELF",
                 "EARLYBIRDCATCHESTHEWORM", "SEEINGISBELIEVING", "GIVEMELIBERTYORGIVEMEDEATH",
-                "FORGIVENESSISBETTERTHANREVENGE", "THEREISNOROYALROADTOLEARNING", "SEIZETHEDAY", 
+                "FORGIVENESSISBETTERTHANREVENGE", "THEREISNOROYALROADTOLEARNING", "SEIZETHEDAY",
                 "LIFEISNOTALLBEERANDSKITTLES", "APOETISTHEPAINTEROFTHESOUL", "LITTLEBYLITTLEDOESTHETRICK",
-                "ONESUTMOSTMOVESTHEHEAVENS", "THISTOOSHALLPASSAWAY", "THEBEGINNINGISHALFOFTHEWHOLE", 
-                "GOODFENCESMAKESGOODNEIGHBORS", "STEPBYSTEPGOESALONGWAY", "LIFEISFULLOFUPSANDDOWNS", 
+                "ONESUTMOSTMOVESTHEHEAVENS", "THISTOOSHALLPASSAWAY", "THEBEGINNINGISHALFOFTHEWHOLE",
+                "GOODFENCESMAKESGOODNEIGHBORS", "STEPBYSTEPGOESALONGWAY", "LIFEISFULLOFUPSANDDOWNS",
                 "NOBEESNOHONEY", "ASKINGCOSTSNOTHING", "FAITHWITHOUTDEEDSISUSELESS", "LIVEASIFYOUWERETODIETOMORROW"]
-    
     for shift in range(26):
         decoded = caesar_decode(ciphertext, shift)
-        # 키워드가 포함되어 있으면 유효한 해독으로 간주
         for keyword in keywords:
             if keyword in decoded.upper():
                 return decoded
-    
-    # 키워드를 찾지 못하면 shift 3으로 시도 (기본값)
-    return caesar_decode(ciphertext, 3)
+    return caesar_decode(ciphertext, 3)  # 기본 fallback
 
 
 def bfs_to_adjacent_supply():
@@ -252,32 +249,30 @@ def bfs_to_adjacent_supply():
     my_pos = get_my_position()
     if not my_pos:
         return []
-    
+
     H, W = get_map_size()
     visited = set()
     queue = deque([(my_pos, [])])
     visited.add(my_pos)
-    
+
     while queue:
         (r, c), path = queue.popleft()
-        
+
         # F에 인접한지 확인
         for i, (dr, dc) in enumerate(DIRS):
             nr, nc = r + dr, c + dc
             if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'F':
-                return path  # F에 인접한 위치 도달
-        
+                return path  # F 인접 위치 도달
+
         # 4방향 탐색
         for i, (dr, dc) in enumerate(DIRS):
             nr, nc = r + dr, c + dc
-            
-            if (0 <= nr < H and 0 <= nc < W and 
-                (nr, nc) not in visited and 
+            if (0 <= nr < H and 0 <= nc < W and
+                (nr, nc) not in visited and
                 map_data[nr][nc] in ['G', 'S']):  # 이동 가능한 지형
-                
                 visited.add((nr, nc))
                 queue.append(((nr, nc), path + [M_CMD[i]]))
-    
+
     return []
 
 
@@ -286,15 +281,15 @@ def is_adjacent_to_supply():
     my_pos = get_my_position()
     if not my_pos:
         return False
-    
+
     H, W = get_map_size()
     r, c = my_pos
-    
+
     for dr, dc in DIRS:
         nr, nc = r + dr, c + dc
         if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'F':
             return True
-    
+
     return False
 
 
@@ -302,12 +297,12 @@ def find_enemy_tanks():
     """적 탱크들의 위치 찾기"""
     enemy_positions = []
     H, W = get_map_size()
-    
+
     for r in range(H):
         for c in range(W):
             if map_data[r][c] in ['E1', 'E2', 'E3']:
                 enemy_positions.append((r, c, map_data[r][c]))
-    
+
     return enemy_positions
 
 
@@ -317,45 +312,43 @@ def find_enemy_turret():
 
 
 def can_attack(my_pos, target_pos):
-    """현재 위치에서 목표를 공격할 수 있는지 확인"""
+    """현재 위치에서 목표를 공격할 수 있는지 확인 (사거리 3, 직선/차폐 단순판정)"""
     if not my_pos or not target_pos:
         return False, -1
-    
+
     mr, mc = my_pos
     tr, tc = target_pos
-    
-    # 같은 행 또는 같은 열에 있는지 확인
+
+    # 같은 행
     if mr == tr:
-        # 같은 행 - 좌우 확인
-        if mc < tc:  # 목표가 오른쪽
-            # 사이에 장애물 확인
+        if mc < tc:  # 오른쪽
             for c in range(mc + 1, tc):
-                if map_data[mr][c] not in ['G', 'S', 'W']:
+                if map_data[mr][c] not in ['G', 'S', 'W']:  # 단순 통과 허용셋
                     return False, -1
-            if abs(tc - mc) <= 3:  # 사거리 3 이내
+            if abs(tc - mc) <= 3:
                 return True, 0  # 오른쪽
-        else:  # 목표가 왼쪽
+        else:  # 왼쪽
             for c in range(tc + 1, mc):
                 if map_data[mr][c] not in ['G', 'S', 'W']:
                     return False, -1
             if abs(tc - mc) <= 3:
                 return True, 2  # 왼쪽
-    
+
+    # 같은 열
     elif mc == tc:
-        # 같은 열 - 상하 확인
-        if mr < tr:  # 목표가 아래
+        if mr < tr:  # 아래
             for r in range(mr + 1, tr):
                 if map_data[r][mc] not in ['G', 'S', 'W']:
                     return False, -1
             if abs(tr - mr) <= 3:
                 return True, 1  # 아래
-        else:  # 목표가 위
+        else:  # 위
             for r in range(tr + 1, mr):
                 if map_data[r][mc] not in ['G', 'S', 'W']:
                     return False, -1
             if abs(tr - mr) <= 3:
                 return True, 3  # 위
-    
+
     return False, -1
 
 
@@ -364,32 +357,77 @@ def bfs_to_attack_position(target_pos):
     my_pos = get_my_position()
     if not my_pos or not target_pos:
         return []
-    
+
     H, W = get_map_size()
     visited = set()
     queue = deque([(my_pos, [])])
     visited.add(my_pos)
-    
+
     while queue:
         (r, c), path = queue.popleft()
-        
+
         # 현재 위치에서 목표 공격 가능한지 확인
         can_hit, _ = can_attack((r, c), target_pos)
         if can_hit:
             return path
-        
+
         # 4방향 탐색
         for i, (dr, dc) in enumerate(DIRS):
             nr, nc = r + dr, c + dc
-            
-            if (0 <= nr < H and 0 <= nc < W and 
-                (nr, nc) not in visited and 
+            if (0 <= nr < H and 0 <= nc < W and
+                (nr, nc) not in visited and
                 map_data[nr][nc] in ['G', 'S']):
-                
                 visited.add((nr, nc))
                 queue.append(((nr, nc), path + [M_CMD[i]]))
-    
+
     return []
+
+
+# ★ 추가: 적 탱크 HP 조회
+def get_enemy_hp(enemy_code):
+    try:
+        if enemy_code in enemies and len(enemies[enemy_code]) >= 1:
+            return int(enemies[enemy_code][0])
+    except:
+        pass
+    return None  # HP 정보 불명
+
+
+# ★ 추가: 메가 1개 이후 1순위 - 가장 가까운 적 탱크 공격/추격
+def decide_vs_nearest_enemy():
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    enemy_tanks = find_enemy_tanks()
+    if not enemy_tanks:
+        return None  # 적 탱크가 없으면 None 반환
+
+    # 1) 지금 당장 사격 가능한 적이 있으면 우선 사격
+    for (er, ec, etype) in enemy_tanks:
+        can_hit, direction = can_attack(my_pos, (er, ec))
+        if can_hit:
+            hp = get_enemy_hp(etype)
+            mega_cnt = get_mega_bomb_count()
+            if hp is not None and hp <= 30:
+                return S_CMD[direction]          # 30 이하면 일반탄
+            elif mega_cnt > 0:
+                return S_MEGA_CMD[direction]     # 그 이상이면 메가(보유 시)
+            else:
+                return S_CMD[direction]          # 메가 없으면 일반
+
+    # 2) 사격 불가면, 사격 가능 위치까지 경로가 가장 짧은 적을 선택해 한 칸 전진
+    best_path = None
+    for (er, ec, etype) in enemy_tanks:
+        path = bfs_to_attack_position((er, ec))
+        if path:
+            if (best_path is None) or (len(path) < len(best_path)):
+                best_path = path
+
+    if best_path:
+        return best_path[0]
+
+    return "S"  # 완전히 막혔으면 대기
 
 
 ###################################
@@ -405,73 +443,50 @@ while game_data is not None:
     ##############################
 
     output = "S"  # 기본값: 대기
-    
+
     # 현재 메가 폭탄 개수 확인
     mega_count = get_mega_bomb_count()
-    
-    # 1순위: 메가 폭탄이 3개 미만이고 아직 획득하지 않았다면 보급시설로 이동
-    if mega_count < 3 and not mega_bombs_acquired:
-        # 암호문이 있으면 (보급시설에 인접)
+
+    # ★ 메가 1개 이상 확보 시 전역 플래그 고정
+    if mega_count >= 1:
+        mega_bombs_acquired = True
+
+    # 1순위: (메가 < 1) 이고 (아직 보급 완료 아님) → 보급 인접 이동/해독
+    if (mega_count < 1) and (not mega_bombs_acquired):
         if codes and is_adjacent_to_supply():
-            # 암호 해독 시도
             decoded = find_valid_caesar_decode(codes[0])
-            print(codes[0])
+            # 디버깅용 출력(원하면 주석)
+            # print(codes[0])
             if decoded:
                 output = f"G {decoded}"
-                # print(output)
-                # 메가 폭탄 획득 성공으로 간주
-                if mega_count == 2:  # 처음 획득하는 경우
-                    mega_bombs_acquired = True
+                # 실제 메가 증가 여부는 다음 턴에서 mega_count로 반영
         else:
-            # 보급시설로 이동
             path = bfs_to_adjacent_supply()
             if path:
                 output = path[0]
-    
-    # 2순위: 메가 폭탄을 충분히 가지고 있으면 적 공격
+
+    # 2순위: 메가 1개 확보 이후 → "가장 가까운 적 탱크" 우선 공격/추격
     else:
-        my_pos = get_my_position()
-        
-        # 우선순위 1: 적 탱크 공격
-        enemy_tanks = find_enemy_tanks()
-        target_found = False
-        
-        for enemy_pos in enemy_tanks:
-            er, ec, enemy_type = enemy_pos
-            can_hit, direction = can_attack(my_pos, (er, ec))
-            
-            if can_hit:
-                # 메가 폭탄이 있으면 메가 폭탄 사용
-                if mega_count > 0:
-                    output = S_MEGA_CMD[direction]
-                else:
-                    output = S_CMD[direction]
-                target_found = True
-                break
-        
-        # 적 탱크를 공격할 수 없으면 적 포탑 공격
-        if not target_found:
+        act = decide_vs_nearest_enemy()
+        if act and act != "S":
+            output = act
+        else:
+            # 적 탱크를 당장 처리할 수 없으면 포탑(X) 로직
+            my_pos = get_my_position()
             turret_pos = find_enemy_turret()
-            if turret_pos:
+            if turret_pos and my_pos:
                 can_hit, direction = can_attack(my_pos, turret_pos)
-                
                 if can_hit:
                     if mega_count > 0:
                         output = S_MEGA_CMD[direction]
                     else:
                         output = S_CMD[direction]
                 else:
-                    # 포탑을 공격할 수 있는 위치로 이동
                     path = bfs_to_attack_position(turret_pos)
                     if path:
                         output = path[0]
             else:
-                # 적 탱크를 공격할 수 있는 위치로 이동
-                if enemy_tanks:
-                    er, ec, _ = enemy_tanks[0]
-                    path = bfs_to_attack_position((er, ec))
-                    if path:
-                        output = path[0]
+                output = "S"
 
     ##############################
     # 알고리즘 메인 구현 끝

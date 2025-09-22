@@ -107,7 +107,6 @@ def parse_data(game_data):
         for j in range(0, len(col)):
             map_data[i][j] = col[j]
     row_index += map_height
-
     # 기존의 아군 정보를 초기화하고 다시 읽어오기
     my_allies.clear()
     for i in range(row_index, row_index + num_of_allies):
@@ -164,34 +163,33 @@ def print_data():
 ##############################
 # 닉네임 설정 및 최초 연결
 ##############################
-NICKNAME = '기본코드'
+NICKNAME = '진격'
 game_data = init(NICKNAME)
 
 
 ###################################
 # 알고리즘 함수/메서드 부분 구현 시작
 ###################################
-def get_boom_count():
-    if 'M' in my_allies and len(my_allies['M']) >= 4:
-        normal = int(my_allies['M'][2])
-        mega = int(my_allies['M'][3])
-        return normal, mega
-    return 0, 0
 
+# 전역 변수 - 메가 폭탄 획득 여부 추적
+mega_bombs_acquired = False
 
+# 방향 벡터 정의
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 우, 하, 좌, 상
 M_CMD = ["R A", "D A", "L A", "U A"]
 S_CMD = ["R F", "D F", "L F", "U F"]
-START_SYMBOL = "M"
-TARGET_SYMBOL = "X"
+S_MEGA_CMD = ["R F M", "D F M", "L F M", "U F M"]
 
 
+# ★ get_map_size 괄호 보정 (우선순위 오류 방지)
 def get_map_size():
-    return len(map_data), len(map_data[0]) if map_data and map_data[0] else (0, 0)
+    if map_data and map_data[0]:
+        return len(map_data), len(map_data[0])
+    return (0, 0)
 
 
 def find_symbol(grid, symbol):
-    """맵에서 특정 기호의 위치를 찾아 반환 (row, col)"""
+    """맵에서 특정 기호의 위치를 찾아 반환"""
     if not grid or not grid[0]:
         return None
     height, width = len(grid), len(grid[0])
@@ -202,217 +200,240 @@ def find_symbol(grid, symbol):
     return None
 
 
-def find_firing_positions(target):
-    """포탑을 공격할 수 있는 위치 찾기 (사격 경로상 나무 개수 포함)"""
-    tx, ty = target
-    H, W = get_map_size()
-    positions = {}
-
-    for dir_idx, (dr, dc) in enumerate(DIRS):
-        for distance in range(1, 4):  # 1~3 거리
-            fx = tx - dr * distance  # 목표에서 역방향
-            fy = ty - dc * distance
-
-            if not (0 <= fx < H and 0 <= fy < W):
-                break
-
-            if map_data[fx][fy] not in ['G', 'T', 'S']:
-                continue
-
-            # 사격 경로 확인 및 나무 개수 세기
-            path_clear = True
-            trees_in_firing_path = 0
-
-            for step in range(1, distance):
-                check_x = fx + dr * step
-                check_y = fy + dc * step
-                terrain = map_data[check_x][check_y]
-
-                # 포탄이 통과할 수 없는 지형이면 불가능
-                if terrain not in ['G', 'T', 'W', 'S']:
-                    path_clear = False
-                    break
-
-                # 사격 경로상 나무 개수 세기
-                if terrain == 'T':
-                    trees_in_firing_path += 1
-
-            if path_clear:
-                if (fx, fy) not in positions:
-                    positions[(fx, fy)] = [dir_idx, trees_in_firing_path]
-
-    return positions
+def get_my_position():
+    """내 탱크(M)의 위치 반환"""
+    return find_symbol(map_data, 'M')
 
 
-def integrated_dijkstra(start, target):
-    """
-    위치와 포탄 수를 상태로 관리하는 통합 다익스트라
-    사격 경로상 나무도 고려하여 포탄 필요량 계산
-    """
-    H, W = get_map_size()
-    sx, sy = start
-    tx, ty = target
+def get_mega_bomb_count():
+    """내가 보유한 메가 폭탄 수 반환"""
+    if 'M' in my_allies and len(my_allies['M']) >= 4:
+        return int(my_allies['M'][3])
+    return 0
 
-    # 초기 포탄 수
-    init_normal, init_mega = get_boom_count()
 
-    # 사격 가능 위치 찾기
-    firing_positions = find_firing_positions(target)
-    if not firing_positions:
+def caesar_decode(ciphertext, shift):
+    """카이사르 암호 해독"""
+    result = ""
+    for char in ciphertext:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base - shift) % 26 + base)
+        else:
+            result += char
+    return result
+
+
+def find_valid_caesar_decode(ciphertext):
+    """유효한 카이사르 해독 찾기 (키워드 매칭)"""
+    keywords = ["DON", "DAY","SUTMOSTMOVESTHEHEAVENS","ONE","IFYOUCANTBEATTHEMJOINTHEM",
+                "THEDIFFICULTYINLIFEISTHECHOICE","THE", "ONLY", "ACTION","CUREFORGRIEFIS",
+                "SSAFY", "BATTLE", "PYTHON", "JAVA", "COME", "FOR", "ALGORITHM", "TANK",
+                "MISSION", "CODE", "HERO", "NOSWEATNOSWEET", "BELIEVEINYOURSELF",
+                "EARLYBIRDCATCHESTHEWORM", "SEEINGISBELIEVING", "GIVEMELIBERTYORGIVEMEDEATH",
+                "FORGIVENESSISBETTERTHANREVENGE", "THEREISNOROYALROADTOLEARNING", "SEIZETHEDAY",
+                "LIFEISNOTALLBEERANDSKITTLES", "APOETISTHEPAINTEROFTHESOUL", "LITTLEBYLITTLEDOESTHETRICK",
+                "ONESUTMOSTMOVESTHEHEAVENS", "THISTOOSHALLPASSAWAY", "THEBEGINNINGISHALFOFTHEWHOLE",
+                "GOODFENCESMAKESGOODNEIGHBORS", "STEPBYSTEPGOESALONGWAY", "LIFEISFULLOFUPSANDDOWNS",
+                "NOBEESNOHONEY", "ASKINGCOSTSNOTHING", "FAITHWITHOUTDEEDSISUSELESS", "LIVEASIFYOUWERETODIETOMORROW"]
+    for shift in range(26):
+        decoded = caesar_decode(ciphertext, shift)
+        for keyword in keywords:
+            if keyword in decoded.upper():
+                return decoded
+    return caesar_decode(ciphertext, 3)  # 기본 fallback
+
+
+def bfs_to_adjacent_supply():
+    """BFS로 보급시설(F)에 인접한 가장 가까운 위치까지의 경로 찾기"""
+    my_pos = get_my_position()
+    if not my_pos:
         return []
 
-    # visited[상태] = 최소 비용
-    INF = float('inf')
-    visited = {}
-    parent = {}
+    H, W = get_map_size()
+    visited = set()
+    queue = deque([(my_pos, [])])
+    visited.add(my_pos)
 
-    # 우선순위 큐: (비용, x, y, 일반포탄, 메가포탄)
-    pq = []
-    start_state = (sx, sy, init_normal, init_mega)
-    heapq.heappush(pq, (0, sx, sy, init_normal, init_mega))
-    visited[start_state] = 0
+    while queue:
+        (r, c), path = queue.popleft()
 
-    best_result = None
-    best_cost = INF
-
-    while pq:
-        cost, x, y, normal, mega = heapq.heappop(pq)
-
-        current_state = (x, y, normal, mega)
-
-        # 이미 더 좋은 경로로 방문했으면 스킵
-        if current_state in visited and visited[current_state] < cost:
-            continue
-
-        # 사격 위치에 도달했는지 확인
-        if (x, y) in firing_positions:
-            fire_dir, trees_in_firing_path = firing_positions[(x, y)]
-
-            # 사격 경로상 나무 파괴에 필요한 포탄
-            bombs_for_trees = trees_in_firing_path
-            # 포탑 파괴에 필요한 포탄
-            bombs_for_turret = 1
-            # 총 필요 포탄
-            total_bombs_needed = bombs_for_trees + bombs_for_turret
-
-            # 현재 보유 포탄으로 가능한지 확인
-            if normal + mega >= total_bombs_needed:
-                # 실제 비용 = 이동 비용 + 사격 경로 나무 파괴 비용
-                actual_cost = cost + (bombs_for_trees * 1)
-
-                if actual_cost < best_cost:
-                    best_cost = actual_cost
-                    best_result = (current_state, parent, fire_dir, trees_in_firing_path)
+        # F에 인접한지 확인
+        for i, (dr, dc) in enumerate(DIRS):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'F':
+                return path  # F 인접 위치 도달
 
         # 4방향 탐색
-        for dir_idx, (dr, dc) in enumerate(DIRS):
-            nx, ny = x + dr, y + dc
-
-            # 맵 범위 체크
-            if not (0 <= nx < H and 0 <= ny < W):
-                continue
-
-            terrain = map_data[nx][ny]
-
-            # 통과 불가능한 지형
-            if terrain in ['R', 'W', 'F', 'H', 'X']:
-                continue
-
-            # 나무인 경우 - 여러 선택지
-            if terrain == 'T':
-                # 옵션 1: 일반 포탄으로 파괴
-                if normal > 0:
-                    new_state = (nx, ny, normal - 1, mega)
-                    new_cost = cost + 2  # 파괴 + 이동
-
-                    if new_state not in visited or visited[new_state] > new_cost:
-                        visited[new_state] = new_cost
-                        parent[new_state] = (current_state, dir_idx, 'FIRE_NORMAL')
-                        heapq.heappush(pq, (new_cost, nx, ny, normal - 1, mega))
-
-                # 옵션 2: 메가 포탄으로 파괴
-                if mega > 0:
-                    new_state = (nx, ny, normal, mega - 1)
-                    new_cost = cost + 2
-
-                    if new_state not in visited or visited[new_state] > new_cost:
-                        visited[new_state] = new_cost
-                        parent[new_state] = (current_state, dir_idx, 'FIRE_MEGA')
-                        heapq.heappush(pq, (new_cost, nx, ny, normal, mega - 1))
-
-
-            # 잔디인 경우 - 그냥 이동
-            elif terrain == 'G':
-                new_state = (nx, ny, normal, mega)
-                new_cost = cost + 1
-
-                if new_state not in visited or visited[new_state] > new_cost:
-                    visited[new_state] = new_cost
-                    parent[new_state] = (current_state, dir_idx, 'MOVE')
-                    heapq.heappush(pq, (new_cost, nx, ny, normal, mega))
-
-    # 경로 재구성
-    if best_result:
-        end_state, parent_dict, fire_dir, trees_in_firing_path = best_result
-        return reconstruct_actions(parent_dict, start_state, end_state, fire_dir, trees_in_firing_path)
+        for i, (dr, dc) in enumerate(DIRS):
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < H and 0 <= nc < W and
+                (nr, nc) not in visited and
+                map_data[nr][nc] in ['G', 'S']):  # 이동 가능한 지형
+                visited.add((nr, nc))
+                queue.append(((nr, nc), path + [M_CMD[i]]))
 
     return []
 
 
-def reconstruct_actions(parent_dict, start_state, end_state, fire_dir, trees_in_firing_path):
-    """상태 기반 경로를 액션 리스트로 변환"""
-    actions = []
-    path = []
-    current = end_state
+def is_adjacent_to_supply():
+    """현재 위치가 보급시설(F)에 인접한지 확인"""
+    my_pos = get_my_position()
+    if not my_pos:
+        return False
 
-    # 경로 역추적
-    while current != start_state:
-        if current not in parent_dict:
-            return []
+    H, W = get_map_size()
+    r, c = my_pos
 
-        prev_state, direction, action_type = parent_dict[current]
-        path.append((direction, action_type))
-        current = prev_state
+    for dr, dc in DIRS:
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'F':
+            return True
 
-    path.reverse()
+    return False
 
-    # 액션 리스트 생성 (경로 이동)
-    for direction, action_type in path:
-        if action_type == 'MOVE':
-            actions.append(M_CMD[direction])
-        elif action_type == 'FIRE_NORMAL':
-            actions.append(S_CMD[direction])
-            actions.append(M_CMD[direction])  # 파괴 후 이동
-        elif action_type == 'FIRE_MEGA':
-            actions.append(S_CMD[direction] + " M")
-            actions.append(M_CMD[direction])  # 파괴 후 이동
 
-    # 사격 경로상 나무 파괴 및 포탑 공격
-    x, y, normal, mega = end_state
+def find_enemy_tanks():
+    """적 탱크들의 위치 찾기"""
+    enemy_positions = []
+    H, W = get_map_size()
 
-    # 사격 경로에 나무가 있으면 먼저 파괴
-    for i in range(trees_in_firing_path):
-        if normal > 0:
-            actions.append(S_CMD[fire_dir])
-            normal -= 1
-        elif mega > 0:
-            actions.append(S_CMD[fire_dir] + " M")
-            mega -= 1
+    for r in range(H):
+        for c in range(W):
+            if map_data[r][c] in ['E1', 'E2', 'E3']:
+                enemy_positions.append((r, c, map_data[r][c]))
 
-    # 마지막으로 포탑 공격
-    if mega > 0:
-        actions.append(S_CMD[fire_dir] + " M")
-    elif normal > 0:
-        actions.append(S_CMD[fire_dir])
+    return enemy_positions
 
-    return actions
+
+def find_enemy_turret():
+    """적 포탑(X)의 위치 찾기"""
+    return find_symbol(map_data, 'X')
+
+
+def can_attack(my_pos, target_pos):
+    """현재 위치에서 목표를 공격할 수 있는지 확인 (사거리 3, 직선/차폐 단순판정)"""
+    if not my_pos or not target_pos:
+        return False, -1
+
+    mr, mc = my_pos
+    tr, tc = target_pos
+
+    # 같은 행
+    if mr == tr:
+        if mc < tc:  # 오른쪽
+            for c in range(mc + 1, tc):
+                if map_data[mr][c] not in ['G', 'S', 'W']:  # 단순 통과 허용셋
+                    return False, -1
+            if abs(tc - mc) <= 3:
+                return True, 0  # 오른쪽
+        else:  # 왼쪽
+            for c in range(tc + 1, mc):
+                if map_data[mr][c] not in ['G', 'S', 'W']:
+                    return False, -1
+            if abs(tc - mc) <= 3:
+                return True, 2  # 왼쪽
+
+    # 같은 열
+    elif mc == tc:
+        if mr < tr:  # 아래
+            for r in range(mr + 1, tr):
+                if map_data[r][mc] not in ['G', 'S', 'W']:
+                    return False, -1
+            if abs(tr - mr) <= 3:
+                return True, 1  # 아래
+        else:  # 위
+            for r in range(tr + 1, mr):
+                if map_data[r][mc] not in ['G', 'S', 'W']:
+                    return False, -1
+            if abs(tr - mr) <= 3:
+                return True, 3  # 위
+
+    return False, -1
+
+
+def bfs_to_attack_position(target_pos):
+    """목표를 공격할 수 있는 위치까지의 최단 경로 찾기"""
+    my_pos = get_my_position()
+    if not my_pos or not target_pos:
+        return []
+
+    H, W = get_map_size()
+    visited = set()
+    queue = deque([(my_pos, [])])
+    visited.add(my_pos)
+
+    while queue:
+        (r, c), path = queue.popleft()
+
+        # 현재 위치에서 목표 공격 가능한지 확인
+        can_hit, _ = can_attack((r, c), target_pos)
+        if can_hit:
+            return path
+
+        # 4방향 탐색
+        for i, (dr, dc) in enumerate(DIRS):
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < H and 0 <= nc < W and
+                (nr, nc) not in visited and
+                map_data[nr][nc] in ['G', 'S']):
+                visited.add((nr, nc))
+                queue.append(((nr, nc), path + [M_CMD[i]]))
+
+    return []
+
+
+# ★ 추가: 적 탱크 HP 조회
+def get_enemy_hp(enemy_code):
+    try:
+        if enemy_code in enemies and len(enemies[enemy_code]) >= 1:
+            return int(enemies[enemy_code][0])
+    except:
+        pass
+    return None  # HP 정보 불명
+
+
+# ★ 추가: 메가 1개 이후 1순위 - 가장 가까운 적 탱크 공격/추격
+def decide_vs_nearest_enemy():
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    enemy_tanks = find_enemy_tanks()
+    if not enemy_tanks:
+        return None  # 적 탱크가 없으면 None 반환
+
+    # 1) 지금 당장 사격 가능한 적이 있으면 우선 사격
+    for (er, ec, etype) in enemy_tanks:
+        can_hit, direction = can_attack(my_pos, (er, ec))
+        if can_hit:
+            hp = get_enemy_hp(etype)
+            mega_cnt = get_mega_bomb_count()
+            if hp is not None and hp <= 30:
+                return S_CMD[direction]          # 30 이하면 일반탄
+            elif mega_cnt > 0:
+                return S_MEGA_CMD[direction]     # 그 이상이면 메가(보유 시)
+            else:
+                return S_CMD[direction]          # 메가 없으면 일반
+
+    # 2) 사격 불가면, 사격 가능 위치까지 경로가 가장 짧은 적을 선택해 한 칸 전진
+    best_path = None
+    for (er, ec, etype) in enemy_tanks:
+        path = bfs_to_attack_position((er, ec))
+        if path:
+            if (best_path is None) or (len(path) < len(best_path)):
+                best_path = path
+
+    if best_path:
+        return best_path[0]
+
+    return "S"  # 완전히 막혔으면 대기
 
 
 ###################################
 # 알고리즘 함수/메서드 부분 구현 끝
 ###################################
 parse_data(game_data)
-actions = []
 
 # 반복문: 메인 프로그램 <-> 클라이언트(이 코드) 간 순차로 데이터 송수신(동기 처리)
 while game_data is not None:
@@ -421,20 +442,55 @@ while game_data is not None:
     # 알고리즘 메인 부분 구현 시작
     ##############################
 
-    # 파싱한 데이터를 화면에 출력하여 확인
-    # print_data()  # 디버깅 시 주석 해제
+    output = "S"  # 기본값: 대기
 
-    # 이전 경로 탐색 결과가 존재하지 않을 경우 다시 탐색
-    if not actions:
-        start = find_symbol(map_data, 'M')
-        target = find_symbol(map_data, 'X')
+    # 현재 메가 폭탄 개수 확인
+    mega_count = get_mega_bomb_count()
 
-        if start and target:
-            # 통합 다익스트라로 최적 경로 탐색
-            actions = integrated_dijkstra(start, target)
+    # ★ 메가 1개 이상 확보 시 전역 플래그 고정
+    if mega_count >= 1:
+        mega_bombs_acquired = True
 
-    # 탱크를 제어할 명령어를 output의 값으로 지정(type: string)
-    output = actions.pop(0) if actions else 'A'
+    # 1순위: (메가 < 1) 이고 (아직 보급 완료 아님) → 보급 인접 이동/해독
+    if (mega_count < 1) and (not mega_bombs_acquired):
+        if codes and is_adjacent_to_supply():
+            decoded = find_valid_caesar_decode(codes[0])
+            # 디버깅용 출력(원하면 주석)
+            # print(codes[0])
+            if decoded:
+                output = f"G {decoded}"
+                # 실제 메가 증가 여부는 다음 턴에서 mega_count로 반영
+        else:
+            path = bfs_to_adjacent_supply()
+            if path:
+                output = path[0]
+
+    # 2순위: 메가 1개 확보 이후 → "가장 가까운 적 탱크" 우선 공격/추격
+    else:
+        act = decide_vs_nearest_enemy()
+        if act and act != "S":
+            output = act
+        else:
+            # 적 탱크를 당장 처리할 수 없으면 포탑(X) 로직
+            my_pos = get_my_position()
+            turret_pos = find_enemy_turret()
+            if turret_pos and my_pos:
+                can_hit, direction = can_attack(my_pos, turret_pos)
+                if can_hit:
+                    if mega_count > 0:
+                        output = S_MEGA_CMD[direction]
+                    else:
+                        output = S_CMD[direction]
+                else:
+                    path = bfs_to_attack_position(turret_pos)
+                    if path:
+                        output = path[0]
+            else:
+                output = "S"
+
+    ##############################
+    # 알고리즘 메인 구현 끝
+    ##############################
 
     # 메인 프로그램에서 명령을 처리할 수 있도록 명령어를 submit()의 인자로 전달
     game_data = submit(output)
@@ -442,10 +498,6 @@ while game_data is not None:
     # submit()의 리턴으로 받은 갱신된 데이터를 다시 파싱
     if game_data:
         parse_data(game_data)
-
-    ##############################
-    # 알고리즘 메인 구현 끝
-    ##############################
 
 # 반복문을 빠져나왔을 때 메인 프로그램과의 연결을 완전히 해제하기 위해 close() 호출
 close()
