@@ -163,7 +163,7 @@ def print_data():
 ##############################
 # 닉네임 설정 및 최초 연결
 ##############################
-NICKNAME = '진격'
+NICKNAME = '갑옷'
 game_data = init(NICKNAME)
 
 
@@ -226,16 +226,67 @@ def caesar_decode(ciphertext, shift):
 
 def find_valid_caesar_decode(ciphertext):
     """유효한 카이사르 해독 찾기 (키워드 매칭)"""
-    keywords = ["DON", "DAY","SUTMOSTMOVESTHEHEAVENS","ONE","IFYOUCANTBEATTHEMJOINTHEM",
-                "THEDIFFICULTYINLIFEISTHECHOICE","THE", "ONLY", "ACTION","CUREFORGRIEFIS",
-                "SSAFY", "BATTLE", "PYTHON", "JAVA", "COME", "FOR", "ALGORITHM", "TANK",
-                "MISSION", "CODE", "HERO", "NOSWEATNOSWEET", "BELIEVEINYOURSELF",
-                "EARLYBIRDCATCHESTHEWORM", "SEEINGISBELIEVING", "GIVEMELIBERTYORGIVEMEDEATH",
-                "FORGIVENESSISBETTERTHANREVENGE", "THEREISNOROYALROADTOLEARNING", "SEIZETHEDAY",
-                "LIFEISNOTALLBEERANDSKITTLES", "APOETISTHEPAINTEROFTHESOUL", "LITTLEBYLITTLEDOESTHETRICK",
-                "ONESUTMOSTMOVESTHEHEAVENS", "THISTOOSHALLPASSAWAY", "THEBEGINNINGISHALFOFTHEWHOLE",
-                "GOODFENCESMAKESGOODNEIGHBORS", "STEPBYSTEPGOESALONGWAY", "LIFEISFULLOFUPSANDDOWNS",
-                "NOBEESNOHONEY", "ASKINGCOSTSNOTHING", "FAITHWITHOUTDEEDSISUSELESS", "LIVEASIFYOUWERETODIETOMORROW"]
+    keywords = [
+              "YOUWILLNEVERKNOWUNTILYOUTRY",
+              "THEREISNOROYALROADTOLEARNING",
+              "BETTERLATETHANNEVER",
+              "THISTOOSHALLPASSAWAY",
+              "FAITHWITHOUTDEEDSISUSELESS",
+              "FORGIVENESSISBETTERTHANREVENGE",
+              "LIFEISNOTALLBEERANDSKITTLES",
+              "UNTILDEATHITISALLLIFE",
+              "WHATEVERYOUDOMAKEITPAY",
+              "TIMEISGOLD",
+              "THEONLYCUREFORGRIEFISACTION",
+              "GIVEMELIBERTYORGIVEMEDEATH",
+              "APOETISTHEPAINTEROFTHESOUL",
+              "BELIEVEINYOURSELF",
+              "NOSWEATNOSWEET",
+              "EARLYBIRDCATCHESTHEWORM",
+              "SEEINGISBELIEVING",
+              "ASKINGCOSTSNOTHING",
+              "GOODFENCESMAKESGOODNEIGHBORS",
+              "AROLLINGSTONEGATHERSNOMOSS",
+              "ONESUTMOSTMOVESTHEHEAVENS",
+              "LITTLEBYLITTLEDOESTHETRICK",
+              "LIVEASIFYOUWERETODIETOMORROW",
+              "LETBYGONESBEBYGONES",
+              "THEBEGINNINGISHALFOFTHEWHOLE",
+              "NOPAINNOGAIN",
+              "STEPBYSTEPGOESALONGWAY",
+              "THEDIFFICULTYINLIFEISTHECHOICE",
+              "LIFEISFULLOFUPSANDDOWNS",
+              "ROMEWASNOTBUILTINADAY",
+              "IFYOUCANTBEATTHEMJOINTHEM",
+              "NOTHINGVENTUREDNOTHINGGAINED",
+              "KNOWLEDGEINYOUTHISWISDOMINAGE",
+              "NOBEESNOHONEY",
+              "WHERETHEREISAWILLTHEREISAWAY",
+              "HABITISSECONDNATURE",
+              "DON",
+              "DAY",
+              "SUTMOSTMOVESTHEHEAVENS",
+              "ONE",
+              "THE",
+              "ONLY",
+              "ACTION",
+              "CUREFORGRIEFIS",
+              "SSAFY",
+              "BATTLE",
+              "ALGORITHM",
+              "TANK",
+              "MISSION",
+              "CODE",
+              "HERO",
+              "SEIZETHEDAY",
+              "LIFEITSELFISAQUOTATION",
+              "LIFEISVENTUREORNOTHING",
+              "DONTDREAMBEIT",
+              "TRYYOURBESTRATHERTHANBETHEBEST",
+              "WHATWILLBEWILLBE",
+              "DONTDWELLONTHEPAST",
+              "PASTISJUSTPAST"
+            ]
     for shift in range(26):
         decoded = caesar_decode(ciphertext, shift)
         for keyword in keywords:
@@ -448,15 +499,15 @@ while game_data is not None:
     mega_count = get_mega_bomb_count()
 
     # ★ 메가 1개 이상 확보 시 전역 플래그 고정
-    if mega_count >= 1:
+    if mega_count >= 10:
         mega_bombs_acquired = True
 
     # 1순위: (메가 < 1) 이고 (아직 보급 완료 아님) → 보급 인접 이동/해독
-    if (mega_count < 1) and (not mega_bombs_acquired):
+    if (mega_count < 10) and (not mega_bombs_acquired):
         if codes and is_adjacent_to_supply():
             decoded = find_valid_caesar_decode(codes[0])
             # 디버깅용 출력(원하면 주석)
-            # print(codes[0])
+            print(codes[0])
             if decoded:
                 output = f"G {decoded}"
                 # 실제 메가 증가 여부는 다음 턴에서 mega_count로 반영
