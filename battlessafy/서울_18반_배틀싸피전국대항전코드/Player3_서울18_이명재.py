@@ -132,33 +132,50 @@ def parse_data(game_data):
 
 # 파싱한 데이터를 화면에 출력(디버깅용)
 def print_data():
-    print(f'\n----------입력 데이터----------\n{game_data}\n----------------------------')
+    # 파일 이름 설정
+    output_filename = 'game_state_output_1.txt'
 
-    print(f'\n[맵 정보] ({len(map_data)} x {len(map_data[0])})')
-    for i in range(len(map_data)):
-        for j in range(len(map_data[i])):
-            print(f'{map_data[i][j]} ', end='')
-        print()
+    # 파일을 쓰기 모드('w', write)로 열고 내용을 작성합니다.
+    # 전역 변수들에 직접 접근합니다. (game_data, map_data, my_allies, enemies, codes)
+    with open(output_filename, 'w', encoding='utf-8') as f:
+        # 입력 데이터
+        f.write(f'\n----------입력 데이터----------\n{game_data}\n----------------------------\n')
 
-    print(f'\n[아군 정보] (아군 수: {len(my_allies)})')
-    for k, v in my_allies.items():
-        if k == 'M':
-            print(f'M (내 탱크) - 체력: {v[0]}, 방향: {v[1]}, 보유한 일반 포탄: {v[2]}개, 보유한 메가 포탄: {v[3]}개')
-        elif k == 'H':
-            print(f'H (아군 포탑) - 체력: {v[0]}')
-        else:
-            print(f'{k} (아군 탱크) - 체력: {v[0]}')
+        # 맵 정보
+        # map_data가 전역 변수이므로 len()을 바로 사용
+        f.write(f'\n[맵 정보] ({len(map_data)} x {len(map_data[0])})\n')
+        for i in range(len(map_data)):
+            row_str = ''
+            for j in range(len(map_data[i])):
+                row_str += f'{map_data[i][j]} '
+            f.write(row_str.strip() + '\n')  # 줄 끝의 공백 제거 후 줄바꿈
 
-    print(f'\n[적군 정보] (적군 수: {len(enemies)})')
-    for k, v in enemies.items():
-        if k == 'X':
-            print(f'X (적군 포탑) - 체력: {v[0]}')
-        else:
-            print(f'{k} (적군 탱크) - 체력: {v[0]}')
+        # 아군 정보
+        f.write(f'\n[아군 정보] (아군 수: {len(my_allies)})\n')
+        for k, v in my_allies.items():
+            if k == 'M':
+                # v[0], v[1], v[2], v[3] 접근 시 데이터 구조가 정확해야 함
+                f.write(f'M (내 탱크) - 체력: {v[0]}, 방향: {v[1]}, 보유한 일반 포탄: {v[2]}개, 보유한 메가 포탄: {v[3]}개\n')
+            elif k == 'H':
+                f.write(f'H (아군 포탑) - 체력: {v[0]}\n')
+            else:
+                f.write(f'{k} (아군 탱크) - 체력: {v[0]}\n')
 
-    print(f'\n[암호문 정보] (암호문 수: {len(codes)})')
-    for i in range(len(codes)):
-        print(codes[i])
+        # 적군 정보
+        f.write(f'\n[적군 정보] (적군 수: {len(enemies)})\n')
+        for k, v in enemies.items():
+            if k == 'X':
+                f.write(f'X (적군 포탑) - 체력: {v[0]}\n')
+            else:
+                f.write(f'{k} (적군 탱크) - 체력: {v[0]}\n')
+
+        # 암호문 정보
+        f.write(f'\n[암호문 정보] (암호문 수: {len(codes)})\n')
+        for i in range(len(codes)):
+            f.write(codes[i] + '\n')
+
+    # 파일 저장 완료 메시지는 콘솔에 출력
+    print(f"게임 상태 정보가 '{output_filename}' 파일에 저장되었습니다. 💾")
 
 
 ##############################
@@ -1100,7 +1117,7 @@ def finalize_stop_count(cmd):
 while game_data is not None:
     # 턴 시작: 안전가드 플래그 리셋
     reset_turn_flags()
-
+    print_data()
     output = "S"
 
     mega_count = get_mega_bomb_count()

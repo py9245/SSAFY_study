@@ -1,0 +1,1 @@
+﻿"""BattleSSAFY GUI package."""

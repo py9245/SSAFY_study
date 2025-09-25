@@ -1,11 +1,11 @@
-import sys
+﻿import sys
 import socket
 from collections import deque
 from heapq import heappop, heappush
 import random
 
 ##############################
-# 메인 프로그램 통신 변수 정의
+# 硫붿씤 ?꾨줈洹몃옩 ?듭떊 蹂???뺤쓽
 ##############################
 HOST = '127.0.0.1'
 PORT = 8747
@@ -13,10 +13,10 @@ ARGS = sys.argv[1] if len(sys.argv) > 1 else ''
 sock = socket.socket()
 
 ##############################
-# 메인 프로그램 통신 함수 정의
+# 硫붿씤 ?꾨줈洹몃옩 ?듭떊 ?⑥닔 ?뺤쓽
 ##############################
 
-# 메인 프로그램 연결 및 초기화
+# 硫붿씤 ?꾨줈洹몃옩 ?곌껐 諛?珥덇린??
 def init(nickname):
     try:
         print(f'[STATUS] Trying to connect to {HOST}:{PORT}...')
@@ -30,7 +30,7 @@ def init(nickname):
         print('[ERROR] Failed to connect. Please check if the main program is waiting for connection.')
         print(e)
 
-# 메인 프로그램으로 데이터(명령어) 전송
+# 硫붿씤 ?꾨줈洹몃옩?쇰줈 ?곗씠??紐낅졊?? ?꾩넚
 def submit(string_to_send):
     try:
         send_data = ARGS + string_to_send + ' '
@@ -43,7 +43,7 @@ def submit(string_to_send):
 
     return None
 
-# 메인 프로그램으로부터 데이터 수신
+# 硫붿씤 ?꾨줈洹몃옩?쇰줈遺???곗씠???섏떊
 def receive():
     try:
         game_data = (sock.recv(1024)).decode()
@@ -57,7 +57,7 @@ def receive():
     except Exception as e:
         print('[ERROR] Failed to receive data. Please check if connection to the main program is valid.')
 
-# 연결 해제
+# ?곌껐 ?댁젣
 def close():
     try:
         if sock is not None:
@@ -68,36 +68,36 @@ def close():
         print('[ERROR] Network connection has been corrupted.')
 
 ##############################
-# 입력 데이터 변수 정의
+# ?낅젰 ?곗씠??蹂???뺤쓽
 ##############################
-map_data = [[]]  # 맵 정보. 예) map_data[0][1] - [0, 1]의 지형/지물
-my_allies = {}  # 아군 정보. 예) my_allies['M'] - 플레이어 본인의 정보
-enemies = {}  # 적군 정보. 예) enemies['X'] - 적 포탑의 정보
-codes = []  # 주어진 암호문. 예) codes[0] - 첫 번째 암호문
+map_data = [[]]  # 留??뺣낫. ?? map_data[0][1] - [0, 1]??吏??吏臾?
+my_allies = {}  # ?꾧뎔 ?뺣낫. ?? my_allies['M'] - ?뚮젅?댁뼱 蹂몄씤???뺣낫
+enemies = {}  # ?곴뎔 ?뺣낫. ?? enemies['X'] - ???ы깙???뺣낫
+codes = []  # 二쇱뼱吏??뷀샇臾? ?? codes[0] - 泥?踰덉㎏ ?뷀샇臾?
 
 ##############################
-# 입력 데이터 파싱
+# ?낅젰 ?곗씠???뚯떛
 ##############################
 
-# 입력 데이터를 파싱하여 각각의 리스트/딕셔너리에 저장
+# ?낅젰 ?곗씠?곕? ?뚯떛?섏뿬 媛곴컖??由ъ뒪???뺤뀛?덈━?????
 def parse_data(game_data, battle_ssafy):
-    # 입력 데이터를 행으로 나누기
+    # ?낅젰 ?곗씠?곕? ?됱쑝濡??섎늻湲?
     game_data_rows = game_data.split('\n')
     row_index = 0
 
-    # 첫 번째 행 데이터 읽기
+    # 泥?踰덉㎏ ???곗씠???쎄린
     header = game_data_rows[row_index].split(' ')
-    map_height = int(header[0]) if len(header) >= 1 else 0 # 맵의 세로 크기
-    map_width = int(header[1]) if len(header) >= 2 else 0  # 맵의 가로 크기
-    num_of_allies = int(header[2]) if len(header) >= 3 else 0  # 아군의 수
-    num_of_enemies = int(header[3]) if len(header) >= 4 else 0  # 적군의 수
-    num_of_codes = int(header[4]) if len(header) >= 5 else 0  # 암호문의 수
+    map_height = int(header[0]) if len(header) >= 1 else 0 # 留듭쓽 ?몃줈 ?ш린
+    map_width = int(header[1]) if len(header) >= 2 else 0  # 留듭쓽 媛濡??ш린
+    num_of_allies = int(header[2]) if len(header) >= 3 else 0  # ?꾧뎔????
+    num_of_enemies = int(header[3]) if len(header) >= 4 else 0  # ?곴뎔????
+    num_of_codes = int(header[4]) if len(header) >= 5 else 0  # ?뷀샇臾몄쓽 ??
     row_index += 1
 
     if battle_ssafy is None: 
         battle_ssafy = Battlessafy(map_height, map_width)
 
-    # 기존의 맵 정보를 초기화하고 다시 읽어오기
+    # 湲곗〈??留??뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     map_data.clear()
     map_data.extend([[ '' for c in range(map_width)] for r in range(map_height)])
     for i in range(0, map_height):
@@ -106,7 +106,7 @@ def parse_data(game_data, battle_ssafy):
             map_data[i][j] = col[j]
     row_index += map_height
 
-    # 기존의 아군 정보를 초기화하고 다시 읽어오기
+    # 湲곗〈???꾧뎔 ?뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     my_allies.clear()
     for i in range(row_index, row_index + num_of_allies):
         ally = game_data_rows[i].split(' ')
@@ -114,7 +114,7 @@ def parse_data(game_data, battle_ssafy):
         my_allies[ally_name] = ally
     row_index += num_of_allies
 
-    # 기존의 적군 정보를 초기화하고 다시 읽어오기
+    # 湲곗〈???곴뎔 ?뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     enemies.clear()
     for i in range(row_index, row_index + num_of_enemies):
         enemy = game_data_rows[i].split(' ')
@@ -122,7 +122,7 @@ def parse_data(game_data, battle_ssafy):
         enemies[enemy_name] = enemy
     row_index += num_of_enemies
 
-    # 기존의 암호문 정보를 초기화하고 다시 읽어오기
+    # 湲곗〈???뷀샇臾??뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     codes.clear()
     for i in range(row_index, row_index + num_of_codes):
         codes.append(game_data_rows[i])
@@ -130,44 +130,44 @@ def parse_data(game_data, battle_ssafy):
     battle_ssafy.update_info(num_of_allies, num_of_enemies, map_data, my_allies, enemies, num_of_codes, codes)
     return battle_ssafy
 
-# 파싱한 데이터를 화면에 출력
+# ?뚯떛???곗씠?곕? ?붾㈃??異쒕젰
 def print_data():
-    print(f'\n----------입력 데이터----------\n{game_data}\n----------------------------')
+    print(f"\n---------- Game Data ----------\n{game_data}\n----------------------------")
 
-    print(f'\n[맵 정보] ({len(map_data)} x {len(map_data[0])})')
-    for i in range(len(map_data)):
-        for j in range(len(map_data[i])):
-            print(f'{map_data[i][j]} ', end='')
-        print()
+    if map_data and map_data[0]:
+        print(f"\n[Map] ({len(map_data)} x {len(map_data[0])})")
+        for row in map_data:
+            print(" ".join(row))
+    else:
+        print("\n[Map] (empty)")
 
-    print(f'\n[아군 정보] (아군 수: {len(my_allies)})')
-    for k, v in my_allies.items():
-        if k == 'M':
-            print(f'M (내 탱크) - 체력: {v[0]}, 방향: {v[1]}, 보유한 일반 포탄: {v[2]}개, 보유한 메가 포탄: {v[3]}개')
-        elif k == 'H':
-            print(f'H (아군 포탑) - 체력: {v[0]}')
+    print(f"\n[Allies] (count {len(my_allies)})")
+    for name, info in my_allies.items():
+        if name == "M":
+            print(f"M (self) hp={info[0]} dir={info[1]} normal={info[2]} mega={info[3]}")
+        elif name == "H":
+            print(f"H (ally turret) hp={info[0]}")
         else:
-            print(f'{k} (아군 탱크) - 체력: {v[0]}')
+            print(f"{name} (ally tank) hp={info[0]}")
 
-    print(f'\n[적군 정보] (적군 수: {len(enemies)})')
-    for k, v in enemies.items():
-        if k == 'X':
-            print(f'X (적군 포탑) - 체력: {v[0]}')
+    print(f"\n[Enemies] (count {len(enemies)})")
+    for name, info in enemies.items():
+        if name == "X":
+            print(f"X (enemy turret) hp={info[0]}")
         else:
-            print(f'{k} (적군 탱크) - 체력: {v[0]}')
+            print(f"{name} (enemy tank) hp={info[0]}")
 
-    print(f'\n[암호문 정보] (암호문 수: {len(codes)})')
-    for i in range(len(codes)):
-        print(codes[i])
-
+    print(f"\n[Codes] (count {len(codes)})")
+    for code in codes:
+        print(code)
 ##############################
-# 닉네임 설정 및 최초 연결
+# ?됰꽕???ㅼ젙 諛?理쒖큹 ?곌껐
 ##############################
-NICKNAME = '킹승호'
+NICKNAME = 'attacker1'
 game_data = init(NICKNAME)
 
 ###################################
-# 알고리즘 함수/메서드 부분 구현 시작
+# ?뚭퀬由ъ쬁 ?⑥닔/硫붿꽌??遺遺?援ы쁽 ?쒖옉
 ###################################
 
 class Battlessafy:
@@ -283,10 +283,12 @@ class Battlessafy:
         my_pos = self.positions.get(Battlessafy.MY_TANK)
         base = self.positions.get(Battlessafy.BASE)
 
-        for r in range(self.R): 
-            for c in range(self.C): 
-                print(self.range_map[r][c], end=' ')
-            print()
+        if my_pos is None or not self.range_map:
+            return Battlessafy.TARGET
+
+        if game_data:
+            print(f"{NICKNAME} state:")
+            print(game_data)
 
         if mode == 'ATTACK': 
             if int(self.target[0]) <= 30: 
@@ -312,15 +314,18 @@ class Battlessafy:
         #           and int(self.my_tank[3]) < 3 and self.tot_supper_ammo < 3):
         #         return Battlessafy.SUPPLY
         #     elif get_manhatan_distance(my_pos, base) > 8: 
-        #         print(f'me-base dis: {get_manhatan_distance(my_pos, base)}')
+        #         print(f'me-base dis: {get_manhattan_distance(my_pos, base)}')
         #         return Battlessafy.BASE 
         #     else: 
         #         return 'Rand'
                 
-    
+
     def path_find(self):
         pqueue = []
         start = self.positions.get(Battlessafy.MY_TANK)
+        if start is None or not self.range_map or not self.current_target:
+            return 'S'
+
         visited = {start}
         command = ''
         print(f'Target: {self.current_target}')
@@ -407,7 +412,7 @@ class Battlessafy:
             return command
 
 
-# 출발지와 목적지의 위치 찾기
+# 異쒕컻吏? 紐⑹쟻吏???꾩튂 李얘린
 # def find_positions(grid, start_mark, goal_mark):
 #     rows, cols = len(grid), len(grid[0])
 #     start = goal = None
@@ -422,7 +427,7 @@ class Battlessafy:
 
 #     return start, goal
 
-# 경로 탐색 알고리즘
+# 寃쎈줈 ?먯깋 ?뚭퀬由ъ쬁
 # def bfs(grid, start, target, wall):
 #     rows, cols = len(grid), len(grid[0])
 #     queue = deque([(start, [])])
@@ -445,7 +450,7 @@ class Battlessafy:
 
 #     return []
 
-# 경로 탐색 변수 정의
+# 寃쎈줈 ?먯깋 蹂???뺤쓽
 # DIRS = [(0,1), (1,0), (0,-1), (-1,0)]
 # MOVE_CMDS = {0: "R A", 1: "D A", 2: "L A", 3: "U A"}
 # FIRE_CMDS = {0: "R F", 1: "D F", 2: "L F", 3: "U F"}
@@ -457,53 +462,56 @@ def get_manhatan_distance(p1, p2):
     return abs(p1[0]-p2[0]) + abs(p1[1]-p2[1])
 
 battle_ssafy = None
-# 최초 데이터 파싱
+# 理쒖큹 ?곗씠???뚯떛
 battle_ssafy = parse_data(game_data, battle_ssafy)
 
-# 출발지점, 목표지점의 위치 확인
+# 異쒕컻吏?? 紐⑺몴吏?먯쓽 ?꾩튂 ?뺤씤
 # start, target = find_positions(map_data, START_SYMBOL, TARGET_SYMBOL)
 # if not start or not target:
 #     print("[ERROR] Start or target not found in map")
 #     close()
 #     exit()
 
-# 최초 경로 탐색
+# 理쒖큹 寃쎈줈 ?먯깋
 # actions = bfs(map_data, start, target, WALL_SYMBOL)
 # actions = battle_ssafy.path_find()
 
 ###################################
-# 알고리즘 함수/메서드 부분 구현 끝
+# ?뚭퀬由ъ쬁 ?⑥닔/硫붿꽌??遺遺?援ы쁽 ??
 ###################################
 
-# 반복문: 메인 프로그램 <-> 클라이언트(이 코드) 간 순차로 데이터 송수신(동기 처리)
+# 諛섎났臾? 硫붿씤 ?꾨줈洹몃옩 <-> ?대씪?댁뼵????肄붾뱶) 媛??쒖감濡??곗씠???≪닔???숆린 泥섎━)
 while game_data is not None:
 
     ##############################
-    # 알고리즘 메인 부분 구현 시작
+    # ?뚭퀬由ъ쬁 硫붿씤 遺遺?援ы쁽 ?쒖옉
     ##############################
 
-    # 파싱한 데이터를 화면에 출력하여 확인
+    # ?뚯떛???곗씠?곕? ?붾㈃??異쒕젰?섏뿬 ?뺤씤
     # print_data()
 
-    # 이전 경로 탐색 결과가 존재하지 않을 경우 다시 탐색
+    # ?댁쟾 寃쎈줈 ?먯깋 寃곌낵媛 議댁옱?섏? ?딆쓣 寃쎌슦 ?ㅼ떆 ?먯깋
     # if not actions:
     #     actions = battle_ssafy.path_find()
 
-    # 탱크를 제어할 명령어를 output의 값으로 지정(type: string)
+    # ?깊겕瑜??쒖뼱??紐낅졊?대? output??媛믪쑝濡?吏??type: string)
     # output = actions.pop(0) if actions else 'A'
 
-    # 메인 프로그램에서 명령을 처리할 수 있도록 명령어를 submit()의 인자로 전달
+    # 硫붿씤 ?꾨줈洹몃옩?먯꽌 紐낅졊??泥섎━?????덈룄濡?紐낅졊?대? submit()???몄옄濡??꾨떖
     actions = battle_ssafy.path_find()
     print(actions)
     game_data = submit(actions)
 
-    # submit()의 리턴으로 받은 갱신된 데이터를 다시 파싱
+    # submit()??由ы꽩?쇰줈 諛쏆? 媛깆떊???곗씠?곕? ?ㅼ떆 ?뚯떛
     if game_data:
         parse_data(game_data, battle_ssafy)
 
     ##############################
-    # 알고리즘 메인 구현 끝
+    # ?뚭퀬由ъ쬁 硫붿씤 援ы쁽 ??
     ##############################
 
-# 반복문을 빠져나왔을 때 메인 프로그램과의 연결을 완전히 해제하기 위해 close() 호출
+# 諛섎났臾몄쓣 鍮좎졇?섏솕????硫붿씤 ?꾨줈洹몃옩怨쇱쓽 ?곌껐???꾩쟾???댁젣?섍린 ?꾪빐 close() ?몄텧
 close()
+
+
+

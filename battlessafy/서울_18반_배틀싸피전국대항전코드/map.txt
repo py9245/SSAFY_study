@@ -1,0 +1,25 @@
+16 16 4 3 0
+F G G G G T T T T T T G G G G X
+G G G G G R R G G R R G E1 G G G
+G G G R G R R G G R R G G G G G
+M3 G G G G T T G G T T G G G G G
+G G G G G T T G G T T G G G G E2
+G G G R G G G G G G G G G G G G
+G G G G G T F S S F T G G G G G
+G G G G G G S T T S G G R G G G
+G G G R G G S T G S G G G G G G
+G G G G G T F S S F T G G G G G
+G G G G G G G G G G G G R G G E3
+M2 G G R G T T G G T T G G G G G
+G G G G G T T G G T T G G G G G
+G G G G G R R G G R R G R G G G
+G G G G G R R G G R R G G G G G
+H G G M G G G G G G G G G G G F
+M 100 L 99 0
+M2 100
+M3 70
+H 100
+E1 100 U 99 0
+E2 100 U 99 0
+E3 100 U 99 0
+X 100
