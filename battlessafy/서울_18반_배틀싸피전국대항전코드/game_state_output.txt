@@ -1,61 +1,61 @@
 
 ----------입력 데이터----------
 16 16 4 4 1
-F G G G G G G G M G G G G G G H
-G G G G G R R G G R R G M2 G G G
-G G G R G R R G G R R E3 G G G G
-G G G G G T T G G G G G G G G M3
-G G G G G T T G G T T G G E1 E2 G
+F G G G G T T T T T E1 G G G G X
+G G G G G R R G G R R G G G G G
+G G G R G R R G G R R G G G G G
+G G G G G T T G G T T G G E2 G G
+G G G G G T T G G T T G G G G E3
 G G G R G G G G G G G G G G G G
 G G G G G T F S S F G G G G G G
 G G G G G G S T T S G G R G G G
 G G G R G G S T G S G G G G G G
-G G G G G T F S S F T G G G G G
+G G G G G G F S S F T G G G G G
 G G G G G G G G G G G G R G G G
-G G G R G G G G G T T G G G G G
-G G G G G T T G G T T G G G G G
+M3 G G R G G T G G T T G G G G G
+G G G M2 G T T G G T T G G G G G
 G G G G G R R G G R R G R G G G
 G G G G G R R G G R R G G G G G
-X G G G G G G G G G G G G G G F
-M 100 L 97 2
-M2 100 D 98 2
-M3 100 D 99 2
+H G G G G G G G G G G G G G G F
+M 0 R 97 2 3 46
+M2 100 U 99 2 0 46
+M3 70 U 99 2 0 46
 H 100
-E1 100 U 97 2
-E2 100 U 99 2
-E3 70 R 93 2
+E1 100 L 98 2 0 46
+E2 100 R 98 2 0 46
+E3 100 D 99 2 0 46
 X 100
 NMKX
 ----------------------------
 
 [맵 정보] (16 x 16)
-F G G G G G G G M G G G G G G H
-G G G G G R R G G R R G M2 G G G
-G G G R G R R G G R R E3 G G G G
-G G G G G T T G G G G G G G G M3
-G G G G G T T G G T T G G E1 E2 G
+F G G G G T T T T T E1 G G G G X
+G G G G G R R G G R R G G G G G
+G G G R G R R G G R R G G G G G
+G G G G G T T G G T T G G E2 G G
+G G G G G T T G G T T G G G G E3
 G G G R G G G G G G G G G G G G
 G G G G G T F S S F G G G G G G
 G G G G G G S T T S G G R G G G
 G G G R G G S T G S G G G G G G
-G G G G G T F S S F T G G G G G
+G G G G G G F S S F T G G G G G
 G G G G G G G G G G G G R G G G
-G G G R G G G G G T T G G G G G
-G G G G G T T G G T T G G G G G
+M3 G G R G G T G G T T G G G G G
+G G G M2 G T T G G T T G G G G G
 G G G G G R R G G R R G R G G G
 G G G G G R R G G R R G G G G G
-X G G G G G G G G G G G G G G F
+H G G G G G G G G G G G G G G F
 
 [아군 정보] (아군 수: 4)
-M (내 탱크) - 체력: 100, 방향: L, 보유한 일반 포탄: 97개, 보유한 메가 포탄: 2개
+M (내 탱크) - 체력: 0, 방향: R, 보유한 일반 포탄: 97개, 보유한 메가 포탄: 2개
 M2 (아군 탱크) - 체력: 100
-M3 (아군 탱크) - 체력: 100
+M3 (아군 탱크) - 체력: 70
 H (아군 포탑) - 체력: 100
 
 [적군 정보] (적군 수: 4)
 E1 (적군 탱크) - 체력: 100
 E2 (적군 탱크) - 체력: 100
-E3 (적군 탱크) - 체력: 70
+E3 (적군 탱크) - 체력: 100
 X (적군 포탑) - 체력: 100
 
 [암호문 정보] (암호문 수: 1)

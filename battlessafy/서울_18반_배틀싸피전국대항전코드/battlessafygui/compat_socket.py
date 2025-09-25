@@ -28,22 +28,27 @@ class FakeSocket:
     def recv(self, bufsize: int) -> bytes:
         if self._closed:
             return b""
-        while len(self._buffer) < bufsize:
-            msg_type, payload = self._conn.recv()
-            if msg_type == "data":
-                self._buffer.extend(payload)
-            elif msg_type == "close":
+
+        # 버퍼에 데이터가 없으면 새 데이터를 한 번 받아온다
+        if not self._buffer:
+            try:
+                msg_type, payload = self._conn.recv()
+                if msg_type == "data":
+                    self._buffer.extend(payload)
+                elif msg_type == "close":
+                    self._closed = True
+                    return b""
+            except (EOFError, ConnectionResetError, BrokenPipeError):
                 self._closed = True
-                break
-            else:
-                # 미지정 이벤트는 무시
-                continue
-            if self._closed or self._buffer:
-                break
+                return b""
+
+        # 버퍼에서 요청된 크기만큼 반환 (가능한 만큼만)
         if not self._buffer:
             return b""
-        chunk = self._buffer[:bufsize]
-        del self._buffer[:bufsize]
+
+        chunk_size = min(len(self._buffer), bufsize)
+        chunk = self._buffer[:chunk_size]
+        del self._buffer[:chunk_size]
         return bytes(chunk)
 
     def close(self) -> None:

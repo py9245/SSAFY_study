@@ -49,6 +49,8 @@ class EntityStats:
     direction: str = DIRECTION_FALLBACK
     normal_ammo: int = 0
     mega_ammo: int = 0
+    yellow_cards: int = 0
+    turn_count: int = 0
 
 
 @dataclass
@@ -230,7 +232,7 @@ def perspective_token_mapping(view: ViewPerspective) -> Dict[str, str]:
 def format_entity_line(token: str, stats: EntityStats) -> str:
     if token in {"H", "X"}:
         return f"{token} {stats.hp}"
-    return f"{token} {stats.hp} {stats.direction} {stats.normal_ammo} {stats.mega_ammo}"
+    return f"{token} {stats.hp} {stats.direction} {stats.normal_ammo} {stats.mega_ammo} {stats.yellow_cards} {stats.turn_count}"
 
 
 def state_to_text(

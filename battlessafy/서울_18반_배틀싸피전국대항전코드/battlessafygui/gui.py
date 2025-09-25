@@ -235,7 +235,7 @@ class GameGUI(tk.Tk):
             return
         if snapshot:
             self.update_display(snapshot)
-        self.after_id = self.after(200, self._schedule_next_step)
+        self.after_id = self.after(150, self._schedule_next_step)
 
     def pause_simulation(self) -> None:
         self.running = False
@@ -289,7 +289,7 @@ class GameGUI(tk.Tk):
         for gid, info in snapshot["tanks"].items():
             self.info_text.insert(
                 tk.END,
-                f" {gid}: HP={info['hp']}, Ammo={info['normal_ammo']}, Mega={info['mega_ammo']}, Pos={info['position']}\n",
+                f" {gid}: HP={info['hp']}, Ammo={info['normal_ammo']}, Mega={info['mega_ammo']}, YellowCards={info.get('yellow_cards', 0)}, Turns={info.get('turn_count', 0)}, Pos={info['position']}\n",
             )
         self.info_text.insert(tk.END, "\nTurrets:\n")
         for gid, info in snapshot["turrets"].items():
