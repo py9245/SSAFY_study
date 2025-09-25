@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
+from collections import defaultdict
 
 from . import maps
 
@@ -58,6 +59,8 @@ class GameEngine:
         self.victory_team: Optional[str] = None
         self.defeat_team: Optional[str] = None
         self.defeat_reason: Optional[str] = None
+
+        self.yellow_cards: Dict[str, int] = defaultdict(int)
 
         for gid in maps.ATTACKER_TANK_IDS + maps.DEFENDER_TANK_IDS:
             pos = parsed_map.tank_positions.get(gid)
@@ -119,6 +122,19 @@ class GameEngine:
         r, c = pos
         return 0 <= r < self.parsed.height and 0 <= c < self.parsed.width
 
+
+
+    def _issue_yellow_card(self, tank: TankState, reason: str) -> None:
+        current = self.yellow_cards[tank.id] + 1
+        self.yellow_cards[tank.id] = current
+        print(f"[PENALTY] {tank.id} receives yellow card #{current}: {reason}")
+        if current >= 3:
+            print(f"[PENALTY] {tank.id} destroyed due to accumulated yellow cards")
+            tank.alive = False
+            tank.position = None
+            tank.hp = 0
+            self._check_defeat(tank.team)
+
     def _tank_at(self, pos: Tuple[int, int]) -> Optional[TankState]:
         for tank in self.tanks.values():
             if tank.alive and tank.position == pos:
@@ -166,17 +182,26 @@ class GameEngine:
 
         parts = command.split()
         if len(parts) < 2:
+            self._issue_yellow_card(tank, "invalid command format")
             return
         direction_token, action = parts[0], parts[1]
         if direction_token not in DIR_VECTORS:
+            self._issue_yellow_card(tank, "invalid direction token")
             return
 
         if action == "A":
-            self._move_tank(tank, direction_token)
+            result = self._move_tank(tank, direction_token)
+            if result == "blocked_ally":
+                self._issue_yellow_card(tank, "attempted to move onto ally")
+            return
         elif action == "F":
             use_mega = len(parts) >= 3 and parts[2] == "M"
-            self._shoot(tank, direction_token, use_mega)
+            hit = self._shoot(tank, direction_token, use_mega)
+            if not hit:
+                self._issue_yellow_card(tank, "fired into empty space")
+            return
         else:
+            self._issue_yellow_card(tank, "invalid action token")
             return
 
     def _check_defeat(self, team: str) -> None:
@@ -259,38 +284,47 @@ class GameEngine:
                 return True
         return False
 
-    def _move_tank(self, tank: TankState, direction_token: str) -> None:
+    def _move_tank(self, tank: TankState, direction_token: str) -> str:
         delta = DIR_VECTORS[direction_token]
         if not tank.position:
-            return
+            return "invalid"
         new_pos = (tank.position[0] + delta[0], tank.position[1] + delta[1])
+        if not self._is_in_bounds(new_pos):
+            tank.direction = direction_token
+            return "blocked"
+        occupant = self._tank_at(new_pos)
+        if occupant is not None and occupant.team == tank.team:
+            tank.direction = direction_token
+            return "blocked_ally"
         if self._is_blocked_for_team(tank.team, new_pos):
             tank.direction = direction_token
-            return
+            return "blocked"
         if self._would_enter_enemy_fire(tank, new_pos):
             tank.direction = direction_token
-            return
+            return "blocked_enemy_fire"
         # 이동
         tank.position = new_pos
         tank.direction = direction_token
+        return "moved"
 
-    def _shoot(self, tank: TankState, direction_token: str, use_mega: bool) -> None:
+    def _shoot(self, tank: TankState, direction_token: str, use_mega: bool) -> bool:
         if use_mega:
             if tank.mega_ammo <= 0:
-                return
+                return False
             damage = MEGA_DAMAGE
             tank.mega_ammo -= 1
         else:
             if tank.normal_ammo <= 0:
-                return
+                return False
             damage = NORMAL_DAMAGE
             tank.normal_ammo -= 1
 
         tank.direction = direction_token
         delta = DIR_VECTORS[direction_token]
         if not tank.position:
-            return
+            return False
         cur_row, cur_col = tank.position
+        hit = False
         for step in range(1, 4):
             target = (cur_row + delta[0] * step, cur_col + delta[1] * step)
             if not self._is_in_bounds(target):
@@ -299,24 +333,28 @@ class GameEngine:
             other_tank = self._tank_at(target)
             if other_tank:
                 self._apply_damage_to_tank(other_tank, damage)
+                hit = True
                 break
 
             turret = self._turret_at(target)
             if turret:
                 self._apply_damage_to_turret(turret, damage)
+                hit = True
                 break
 
             terrain = self.base_grid[target[0]][target[1]]
             if terrain == TREE_TERRAIN:
                 self.base_grid[target[0]][target[1]] = "G"
+                hit = True
                 break
             if terrain in BLOCKING_TERRAINS:
                 break
-            # 통과 가능한 지형이면 계속 진행
             if terrain in PASS_THROUGH_TERRAINS:
                 continue
-            # 기타 지형은 그대로 중단
             break
+
+        return hit
+
     def _handle_supply_command(self, tank: TankState, command: str) -> None:
         if tank.position is None:
             return

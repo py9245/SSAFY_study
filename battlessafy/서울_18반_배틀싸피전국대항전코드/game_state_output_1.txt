@@ -1,8 +1,8 @@
 
 ----------입력 데이터----------
 16 16 4 4 1
-F G G G G G G G M2 G G G M3 G G H
-G G G G G R R G G R R G G G G G
+F G G G G G G G G M2 G G G G G H
+G G G G G R R G G R R G M3 G G G
 G G G R G R R G G R R E3 G G G G
 G G G G G T T G G G G G G G G M
 G G G G G T T G G T T G G E1 E2 G
@@ -18,8 +18,8 @@ G G G G G R R G G R R G R G G G
 G G G G G R R G G R R G G G G G
 X G G G G G G G G G G G G G G F
 M 100 D 99 2
-M2 100 L 97 2
-M3 100 U 98 2
+M2 100 R 97 2
+M3 100 D 98 2
 H 100
 E1 100 U 97 2
 E2 100 U 99 2
@@ -29,8 +29,8 @@ NMKX
 ----------------------------
 
 [맵 정보] (16 x 16)
-F G G G G G G G M2 G G G M3 G G H
-G G G G G R R G G R R G G G G G
+F G G G G G G G G M2 G G G G G H
+G G G G G R R G G R R G M3 G G G
 G G G R G R R G G R R E3 G G G G
 G G G G G T T G G G G G G G G M
 G G G G G T T G G T T G G E1 E2 G
