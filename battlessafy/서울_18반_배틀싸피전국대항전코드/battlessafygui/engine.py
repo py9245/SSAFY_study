@@ -33,6 +33,8 @@ class TankState:
     mega_ammo: int
     position: Optional[Tuple[int, int]]
     alive: bool = True
+    yellow_cards: int = 0
+    turn_count: int = 0
 
 
 @dataclass
@@ -60,7 +62,6 @@ class GameEngine:
         self.defeat_team: Optional[str] = None
         self.defeat_reason: Optional[str] = None
 
-        self.yellow_cards: Dict[str, int] = defaultdict(int)
 
         for gid in maps.ATTACKER_TANK_IDS + maps.DEFENDER_TANK_IDS:
             pos = parsed_map.tank_positions.get(gid)
@@ -125,10 +126,9 @@ class GameEngine:
 
 
     def _issue_yellow_card(self, tank: TankState, reason: str) -> None:
-        current = self.yellow_cards[tank.id] + 1
-        self.yellow_cards[tank.id] = current
-        print(f"[PENALTY] {tank.id} receives yellow card #{current}: {reason}")
-        if current >= 3:
+        tank.yellow_cards += 1
+        print(f"[PENALTY] {tank.id} receives yellow card #{tank.yellow_cards}: {reason}")
+        if tank.yellow_cards >= 3:
             print(f"[PENALTY] {tank.id} destroyed due to accumulated yellow cards")
             tank.alive = False
             tank.position = None
@@ -172,7 +172,8 @@ class GameEngine:
 
         if not command:
             return
-        if command == "S":
+        if command in {"S", "R", "L", "U", "D"}:
+            self._issue_yellow_card(tank, "command missing action")
             return
 
         # 보급 명령은 "G <text>"
@@ -193,6 +194,8 @@ class GameEngine:
             result = self._move_tank(tank, direction_token)
             if result == "blocked_ally":
                 self._issue_yellow_card(tank, "attempted to move onto ally")
+            elif result == "blocked_enemy":
+                self._issue_yellow_card(tank, "attempted to move onto enemy")
             return
         elif action == "F":
             use_mega = len(parts) >= 3 and parts[2] == "M"
@@ -293,15 +296,14 @@ class GameEngine:
             tank.direction = direction_token
             return "blocked"
         occupant = self._tank_at(new_pos)
-        if occupant is not None and occupant.team == tank.team:
+        if occupant is not None:
             tank.direction = direction_token
-            return "blocked_ally"
+            if occupant.team == tank.team:
+                return "blocked_ally"
+            return "blocked_enemy"
         if self._is_blocked_for_team(tank.team, new_pos):
             tank.direction = direction_token
             return "blocked"
-        if self._would_enter_enemy_fire(tank, new_pos):
-            tank.direction = direction_token
-            return "blocked_enemy_fire"
         # 이동
         tank.position = new_pos
         tank.direction = direction_token
@@ -410,6 +412,8 @@ class GameEngine:
                 direction=tank.direction,
                 normal_ammo=max(tank.normal_ammo, 0),
                 mega_ammo=max(tank.mega_ammo, 0),
+                yellow_cards=tank.yellow_cards,
+                turn_count=tank.turn_count,
             )
 
         turret_stats: Dict[str, maps.EntityStats] = {}
@@ -441,8 +445,10 @@ class GameEngine:
             view,
         )
 
-    def advance_turn(self) -> None:
+    def advance_turn(self, actor_id: str = None) -> None:
         self.turn_counter += 1
+        if actor_id and actor_id in self.tanks:
+            self.tanks[actor_id].turn_count += 1
 
     def living_tanks(self) -> Iterable[TankState]:
         return (tank for tank in self.tanks.values() if tank.alive)
@@ -462,6 +468,8 @@ class GameEngine:
                     "mega_ammo": tank.mega_ammo,
                     "position": tank.position,
                     "alive": tank.alive,
+                    "yellow_cards": tank.yellow_cards,
+                    "turn_count": tank.turn_count,
                 }
                 for gid, tank in self.tanks.items()
             },

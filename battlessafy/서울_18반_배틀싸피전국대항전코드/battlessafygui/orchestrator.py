@@ -43,25 +43,43 @@ class BotSpec:
 class BotProcess:
     def __init__(self, spec: BotSpec):
         self.spec = spec
-        parent_conn, child_conn = Pipe()
-        self._conn = parent_conn
-        self._process = Process(target=_bot_worker, args=(child_conn, spec.path), daemon=True)
+        self._conn = None
+        self._process = None
         self._queue: Deque[str] = deque()
         self._alive = False
         self._waiting_for_state = False
         self._connected = False
+        self._initialized = False
+
+    def create_process(self) -> None:
+        """새로운 프로세스를 생성합니다."""
+        if self._process and self._process.is_alive():
+            self.terminate()
+        parent_conn, child_conn = Pipe()
+        self._conn = parent_conn
+        self._process = Process(target=_bot_worker, args=(child_conn, self.spec.path), daemon=True)
+        self._queue.clear()
+        self._alive = False
+        self._waiting_for_state = False
+        self._connected = False
+        self._initialized = False
 
     def start(self) -> None:
+        if not self._process:
+            self.create_process()
         self._process.start()
         self._alive = True
 
     def terminate(self) -> None:
-        if self._process.is_alive():
+        if self._process and self._process.is_alive():
             self._process.terminate()
-        self._process.join(timeout=1.0)
+        if self._process:
+            self._process.join(timeout=1.0)
         self._alive = False
 
     def _pump_messages(self) -> None:
+        if not self._conn:
+            return
         while self._conn.poll(0):
             msg_type, payload = self._conn.recv()
             if msg_type == "connect":
@@ -70,7 +88,6 @@ class BotProcess:
                 command = payload.decode("utf-8", errors="ignore").strip()
                 if command:
                     self._queue.append(command)
-                    self._waiting_for_state = True
             elif msg_type == "close":
                 self._alive = False
                 break
@@ -83,18 +100,30 @@ class BotProcess:
         while True:
             self._pump_messages()
             if self._queue:
-                return self._queue.popleft()
-            if not self._process.is_alive():
+                command = self._queue.popleft()
+                # 명령을 받았으므로 봇이 응답을 기다리고 있음을 표시
+                self._waiting_for_state = True
+                return command
+            if not self._process or not self._process.is_alive():
                 self._alive = False
                 return None
             if timeout is not None and time.time() >= deadline:
                 return None
-            time.sleep(0.01)
+            time.sleep(0.005)  # 더 빠른 폴링
 
-    def send_state(self, game_data: str) -> None:
+    def send_state(self, game_data: str, *, reset_queue: bool = False) -> None:
+        if not self._conn:
+            return
         payload = game_data.encode("utf-8")
-        self._conn.send(("data", payload))
-        self._waiting_for_state = False
+        if reset_queue:
+            # 이전 상태를 기준으로 만든 명령이 남아있다면 폐기한다.
+            self._queue.clear()
+        # 즉시 상태 전송
+        try:
+            self._conn.send(("data", payload))
+            self._waiting_for_state = False
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            self._alive = False
 
     @property
     def waiting_for_state(self) -> bool:
@@ -102,7 +131,14 @@ class BotProcess:
 
     @property
     def is_alive(self) -> bool:
-        return self._process.is_alive()
+        return self._process and self._process.is_alive()
+
+    @property
+    def initialized(self) -> bool:
+        return self._initialized
+
+    def mark_initialized(self) -> None:
+        self._initialized = True
 
 
 class TurnOrchestrator:
@@ -123,16 +159,7 @@ class TurnOrchestrator:
     def start(self) -> None:
         if self.started:
             return
-        for process in self.bot_processes.values():
-            process.start()
-        # 핸드셰이크 처리
-        for spec in self.turn_order:
-            bot = self.bot_processes[spec.name]
-            init_cmd = bot.get_next_command(timeout=self.command_timeout)
-            if not init_cmd or "INIT" not in init_cmd:
-                raise RuntimeError(f"봇 {spec.name}이 INIT 핸드셰이크를 보내지 않았습니다.")
-            game_data = self.engine.build_game_data(spec.tank_id)
-            bot.send_state(game_data)
+        # 봇 프로세스들은 필요할 때마다 생성함
         self.started = True
 
     def stop(self) -> None:
@@ -156,33 +183,44 @@ class TurnOrchestrator:
         spec = self.turn_order[self.turn_index]
         bot = self.bot_processes[spec.name]
 
+        print(f"[DEBUG] Starting {spec.name}({spec.tank_id})")
+
+        # 새로운 프로세스 생성 및 시작
+        bot.create_process()
+        bot.start()
+
+        # 초기화 (INIT 핸드셰이크)
+        init_cmd = bot.get_next_command(timeout=self.command_timeout)
+        if not init_cmd or "INIT" not in init_cmd:
+            raise RuntimeError(f"봇 {spec.name}이 INIT 핸드셰이크를 보내지 않았습니다.")
+
+        # 게임 데이터 전송
+        game_data = self.engine.build_game_data(spec.tank_id)
+        bot.send_state(game_data)
+        print(f"[DEBUG] Game data sent to {spec.name}({spec.tank_id})")
+
+        # 명령 받기
         command = bot.get_next_command(timeout=self.command_timeout)
         if command is None:
             normalized = "S"
+            print(f"[DEBUG] {spec.name}({spec.tank_id}): No command received -> 'S'")
         else:
             normalized = self._normalize_command(command)
+            print(f"[DEBUG] {spec.name}({spec.tank_id}): Raw='{command}' -> Normalized='{normalized}'")
 
-        if normalized.startswith("INIT"):
-            # 예외 상황: 봇이 재시작되었을 때. 최신 상태 재전송 후 다음 명령 대기.
-            bot.send_state(self.engine.build_game_data(spec.tank_id))
-            command = bot.get_next_command(timeout=self.command_timeout)
-            normalized = self._normalize_command(command or "")
-
+        # 명령 처리
         if normalized and not normalized.startswith("INIT"):
+            print(f"[DEBUG] {spec.name}({spec.tank_id}): Processing command '{normalized}'")
             self.engine.process_command(spec.tank_id, normalized)
-        self.engine.advance_turn()
+        else:
+            print(f"[DEBUG] {spec.name}({spec.tank_id}): Skipping command processing")
 
-        # 명령 송신자에게 최신 상태 전달
-        bot.send_state(self.engine.build_game_data(spec.tank_id))
+        # 봇 프로세스 종료
+        bot.terminate()
+        print(f"[DEBUG] {spec.name}({spec.tank_id}) terminated")
 
-        # 다른 봇이 응답을 기다리고 있다면 최신 상태 브로드캐스트
-        for other_spec in self.turn_order:
-            other_bot = self.bot_processes[other_spec.name]
-            if other_bot is bot:
-                continue
-            if other_bot.waiting_for_state:
-                other_bot.send_state(self.engine.build_game_data(other_spec.tank_id))
-
+        # 턴 완료 후 카운터 증가
+        self.engine.advance_turn(spec.tank_id)
         self.turn_index = (self.turn_index + 1) % len(self.turn_order)
         return self.engine.get_snapshot()
 

@@ -1,4 +1,4 @@
-16 16 4 3 0
+16 16 4 4 1
 F G G G G T T T T T T G G G G X
 G G G G G R R G G R R G E1 G G G
 G G G R G R R G G R R G G G G G
