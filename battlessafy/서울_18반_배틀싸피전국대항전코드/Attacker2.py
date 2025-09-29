@@ -1,11 +1,10 @@
 ﻿import sys
 import socket
-from collections import deque
-from heapq import heappop, heappush
-import random
+import heapq
+from collections import defaultdict, deque
 
 ##############################
-# 硫붿씤 ?꾨줈洹몃옩 ?듭떊 蹂???뺤쓽
+# 메인 프로그램 통신 변수 정의
 ##############################
 HOST = '127.0.0.1'
 PORT = 8747
@@ -13,100 +12,99 @@ ARGS = sys.argv[1] if len(sys.argv) > 1 else ''
 sock = socket.socket()
 
 ##############################
-# 硫붿씤 ?꾨줈洹몃옩 ?듭떊 ?⑥닔 ?뺤쓽
+# 메인 프로그램 통신 함수 정의
 ##############################
-
-# 硫붿씤 ?꾨줈洹몃옩 ?곌껐 諛?珥덇린??
 def init(nickname):
     try:
         print(f'[STATUS] Trying to connect to {HOST}:{PORT}...')
         sock.connect((HOST, PORT))
         print('[STATUS] Connected')
         init_command = f'INIT {nickname}'
-
         return submit(init_command)
-
     except Exception as e:
         print('[ERROR] Failed to connect. Please check if the main program is waiting for connection.')
         print(e)
 
-# 硫붿씤 ?꾨줈洹몃옩?쇰줈 ?곗씠??紐낅졊?? ?꾩넚
 def submit(string_to_send):
     try:
         send_data = ARGS + string_to_send + ' '
         sock.send(send_data.encode('utf-8'))
-
         return receive()
-        
     except Exception as e:
         print('[ERROR] Failed to send data. Please check if connection to the main program is valid.')
-
     return None
 
-# 硫붿씤 ?꾨줈洹몃옩?쇰줈遺???곗씠???섏떊
 def receive():
     try:
         game_data = (sock.recv(1024)).decode()
-
         if game_data and game_data[0].isdigit() and int(game_data[0]) > 0:
             return game_data
-
-        print('[STATUS] No receive data from the main program.')    
+        print('[STATUS] No receive data from the main program.')
         close()
-
     except Exception as e:
-        print('[ERROR] Failed to receive data. Please check if connection to the main program is valid.')
+        print('[ERROR] Failed to receive data. Please check if connection to the main program is valid.]')
 
-# ?곌껐 ?댁젣
 def close():
     try:
         if sock is not None:
             sock.close()
         print('[STATUS] Connection closed')
-    
     except Exception as e:
-        print('[ERROR] Network connection has been corrupted.')
+        print('[ERROR] Network connection has been corrupted.]')
 
 ##############################
-# ?낅젰 ?곗씠??蹂???뺤쓽
+# 입력 데이터 변수 정의
 ##############################
-map_data = [[]]  # 留??뺣낫. ?? map_data[0][1] - [0, 1]??吏??吏臾?
-my_allies = {}  # ?꾧뎔 ?뺣낫. ?? my_allies['M'] - ?뚮젅?댁뼱 蹂몄씤???뺣낫
-enemies = {}  # ?곴뎔 ?뺣낫. ?? enemies['X'] - ???ы깙???뺣낫
-codes = []  # 二쇱뼱吏??뷀샇臾? ?? codes[0] - 泥?踰덉㎏ ?뷀샇臾?
+map_data = [[]]
+my_allies = {}
+enemies = {}
+codes = []
 
 ##############################
-# ?낅젰 ?곗씠???뚯떛
+# 전역 상태 (요청 반영)
 ##############################
+S_USAGE_COUNT = 0                    # 모든 "S" 누적 카운트 (총 2회까지만 의미 있게 사용)
+safety_stop_used_this_turn = False   # 이번 턴에 안전 때문에 S를 썼는지
+stop_counted_this_turn = False       # 이번 턴에 S_USAGE_COUNT를 이미 증가시켰는지
+mega_bombs_acquired = False
 
-# ?낅젰 ?곗씠?곕? ?뚯떛?섏뿬 媛곴컖??由ъ뒪???뺤뀛?덈━?????
-def parse_data(game_data, battle_ssafy):
-    # ?낅젰 ?곗씠?곕? ?됱쑝濡??섎늻湲?
+current_route = None
+route_position = 0
+route_direction = 1  # 1: 정방향, -1: 역방향
+
+# 방향/명령어
+DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 우, 하, 좌, 상
+M_CMD = ["R A", "D A", "L A", "U A"]
+S_CMD = ["R F", "D F", "L F", "U F"]
+S_MEGA_CMD = ["R F M", "D F M", "L F M", "U F M"]
+
+# ★ 추가: 적 기지(X) 근처 목적지 오프셋 (원하는 값으로 조정 가능)
+BASE_OFFSET_DR = 2
+BASE_OFFSET_DC = 2
+
+##############################
+# 파싱 / 기본 유틸
+##############################
+def parse_data(game_data):
     game_data_rows = game_data.split('\n')
     row_index = 0
 
-    # 泥?踰덉㎏ ???곗씠???쎄린
     header = game_data_rows[row_index].split(' ')
-    map_height = int(header[0]) if len(header) >= 1 else 0 # 留듭쓽 ?몃줈 ?ш린
-    map_width = int(header[1]) if len(header) >= 2 else 0  # 留듭쓽 媛濡??ш린
-    num_of_allies = int(header[2]) if len(header) >= 3 else 0  # ?꾧뎔????
-    num_of_enemies = int(header[3]) if len(header) >= 4 else 0  # ?곴뎔????
-    num_of_codes = int(header[4]) if len(header) >= 5 else 0  # ?뷀샇臾몄쓽 ??
+    map_height = int(header[0]) if len(header) >= 1 else 0
+    map_width = int(header[1]) if len(header) >= 2 else 0
+    num_of_allies = int(header[2]) if len(header) >= 3 else 0
+    num_of_enemies = int(header[3]) if len(header) >= 4 else 0
+    num_of_codes = int(header[4]) if len(header) >= 5 else 0
     row_index += 1
 
-    if battle_ssafy is None: 
-        battle_ssafy = Battlessafy(map_height, map_width)
-
-    # 湲곗〈??留??뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     map_data.clear()
-    map_data.extend([[ '' for c in range(map_width)] for r in range(map_height)])
+    map_data.extend([['' for c in range(map_width)] for r in range(map_height)])
     for i in range(0, map_height):
         col = game_data_rows[row_index + i].split(' ')
         for j in range(0, len(col)):
             map_data[i][j] = col[j]
     row_index += map_height
 
-    # 湲곗〈???꾧뎔 ?뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     my_allies.clear()
     for i in range(row_index, row_index + num_of_allies):
         ally = game_data_rows[i].split(' ')
@@ -114,7 +112,6 @@ def parse_data(game_data, battle_ssafy):
         my_allies[ally_name] = ally
     row_index += num_of_allies
 
-    # 湲곗〈???곴뎔 ?뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     enemies.clear()
     for i in range(row_index, row_index + num_of_enemies):
         enemy = game_data_rows[i].split(' ')
@@ -122,394 +119,888 @@ def parse_data(game_data, battle_ssafy):
         enemies[enemy_name] = enemy
     row_index += num_of_enemies
 
-    # 湲곗〈???뷀샇臾??뺣낫瑜?珥덇린?뷀븯怨??ㅼ떆 ?쎌뼱?ㅺ린
     codes.clear()
     for i in range(row_index, row_index + num_of_codes):
         codes.append(game_data_rows[i])
 
-    battle_ssafy.update_info(num_of_allies, num_of_enemies, map_data, my_allies, enemies, num_of_codes, codes)
-    return battle_ssafy
-
-# ?뚯떛???곗씠?곕? ?붾㈃??異쒕젰
-def print_data():
-    print(f"\n---------- Game Data ----------\n{game_data}\n----------------------------")
-
+def get_map_size():
     if map_data and map_data[0]:
-        print(f"\n[Map] ({len(map_data)} x {len(map_data[0])})")
-        for row in map_data:
-            print(" ".join(row))
-    else:
-        print("\n[Map] (empty)")
+        return len(map_data), len(map_data[0])
+    return (0, 0)
 
-    print(f"\n[Allies] (count {len(my_allies)})")
-    for name, info in my_allies.items():
-        if name == "M":
-            print(f"M (self) hp={info[0]} dir={info[1]} normal={info[2]} mega={info[3]}")
-        elif name == "H":
-            print(f"H (ally turret) hp={info[0]}")
-        else:
-            print(f"{name} (ally tank) hp={info[0]}")
+def find_symbol(grid, symbol):
+    if not grid or not grid[0]:
+        return None
+    H, W = len(grid), len(grid[0])
+    for r in range(H):
+        for c in range(W):
+            if grid[r][c] == symbol:
+                return (r, c)
+    return None
 
-    print(f"\n[Enemies] (count {len(enemies)})")
-    for name, info in enemies.items():
-        if name == "X":
-            print(f"X (enemy turret) hp={info[0]}")
-        else:
-            print(f"{name} (enemy tank) hp={info[0]}")
+def find_all_symbols(symbol):
+    if not map_data or not map_data[0]:
+        return []
+    H, W = get_map_size()
+    ret = []
+    for r in range(H):
+        for c in range(W):
+            if map_data[r][c] == symbol:
+                ret.append((r, c))
+    return ret
 
-    print(f"\n[Codes] (count {len(codes)})")
-    for code in codes:
-        print(code)
+def get_my_position():
+    return find_symbol(map_data, 'M')
+
+def get_allied_turret_position():
+    return find_symbol(map_data, 'H')
+
+def get_enemy_turret_position():
+    return find_symbol(map_data, 'X')  # 적 포탑 위치
+
+def get_mega_bomb_count():
+    if 'M' in my_allies and len(my_allies['M']) >= 4:
+        return int(my_allies['M'][3])
+    return 0
+
+def distance(a, b):
+    if not a or not b:
+        return float('inf')
+    return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+def in_bounds(r, c):
+    H, W = get_map_size()
+    return 0 <= r < H and 0 <= c < W
+
 ##############################
-# ?됰꽕???ㅼ젙 諛?理쒖큹 ?곌껐
+# 암호
 ##############################
-NICKNAME = 'attacker2'
-game_data = init(NICKNAME)
+def caesar_decode(ciphertext, shift):
+    result = ""
+    for char in ciphertext:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base - shift) % 26 + base)
+        else:
+            result += char
+    return result
 
-###################################
-# ?뚭퀬由ъ쬁 ?⑥닔/硫붿꽌??遺遺?援ы쁽 ?쒖옉
-###################################
+def find_valid_caesar_decode(ciphertext):
+    keywords = [
+        "YOUWILLNEVERKNOWUNTILYOUTRY","THEREISNOROYALROADTOLEARNING",
+        "BETTERLATETHANNEVER","THISTOOSHALLPASSAWAY","FAITHWITHOUTDEEDSISUSELESS",
+        "FORGIVENESSISBETTERTHANREVENGE","LIFEISNOTALLBEERANDSKITTLES","UNTILDEATHITISALLLIFE",
+        "WHATEVERYOUDOMAKEITPAY","TIMEISGOLD","THEONLYCUREFORGRIEFISACTION","GIVEMELIBERTYORGIVEMEDEATH",
+        "APOETISTHEPAINTEROFTHESOUL","BELIEVEINYOURSELF","NOSWEATNOSWEET","EARLYBIRDCATCHESTHEWORM",
+        "SEEINGISBELIEVING","ASKINGCOSTSNOTHING","GOODFENCESMAKESGOODNEIGHBORS","AROLLINGSTONEGATHERSNOMOSS",
+        "ONESUTMOSTMOVESTHEHEAVENS","LITTLEBYLITTLEDOESTHETRICK","LIVEASIFYOUWERETODIETOMORROW",
+        "LETBYGONESBEBYGONES","THEBEGINNINGISHALFOFTHEWHOLE","NOPAINNOGAIN","STEPBYSTEPGOESALONGWAY",
+        "THEDIFFICULTYINLIFEISTHECHOICE","LIFEISFULLOFUPSANDDOWNS","ROMEWASNOTBUILTINADAY",
+        "IFYOUCANTBEATTHEMJOINTHEM","NOTHINGVENTUREDNOTHINGGAINED","KNOWLEDGEINYOUTHISWISDOMINAGE",
+        "NOBEESNOHONEY","WHERETHEREISAWILLTHEREISAWAY","HABITISSECONDNATURE","SUTMOSTMOVESTHEHEAVENS",
+        "ONLY","ACTION","CUREFORGRIEFIS","SSAFY","BATTLE","ALGORITHM","TANK","MISSION","CODE","HERO","SEIZETHEDAY",
+        "LIFEITSELFISAQUOTATION","LIFEISVENTUREORNOTHING","DONTDREAMBEIT","TRYYOURBESTRATHERTHANBETHEBEST",
+        "WHATWILLBEWILLBE","DONTDWELLONTHEPAST","PASTISJUSTPAST","FOLLOWYOURHEART","LITTLEBYLITTLEDOESTHETRICK"
+    ]
+    for shift in range(26):
+        decoded = caesar_decode(ciphertext, shift)
+        for kw in keywords:
+            if kw in decoded.upper():
+                return decoded
+    return caesar_decode(ciphertext, 3)
 
-class Battlessafy:
-    DIRS = [(0,1), (1,0), (0,-1), (-1,0)]
-    MOVE_CMDS = {0: "R A", 1: "D A", 2: "L A", 3: "U A"}
-    FIRE_CMDS = {0: "R F", 1: "D F", 2: "L F", 3: "U F"}
-    SUPER_AMMO = ' M'
-    MY_TANK = 'M'
-    TARGET = 'X'
-    BASE = 'H'
-    ROCK = 'R'
-    WATER = 'W'
-    TREE = 'T'
-    SUPPLY = 'F'
-    CODE = 'G '
-    ALLIES = ['M1', 'M2', 'M3']
-    ENEMIES = ['E1', 'E2', 'E3']
-    DISTANCE = {'G': 1, 'T': 2, 'E1': 1, 'E2': 1, 'E3': 1, 'S': 3}
+##############################
+# Forbidden Zone
+##############################
+def get_forbidden_cells():
+    H, W = get_map_size()
+    turret = get_allied_turret_position()
+    forbidden = set()
+    if not turret:
+        return forbidden
+    tr, tc = turret
+    if tr == 0 and tc == W-1:
+        cand = [(0, W-2),(0, W-3),(1, W-1),(1, W-2),(1, W-3),(2, W-1),(2, W-2),(2, W-3)]
+        forbidden |= {(r,c) for (r,c) in cand if 0<=r<H and 0<=c<W}
+    if tr == H-1 and tc == 0:
+        cand = [(H-1,1),(H-1,2),(H-2,0),(H-2,1),(H-2,2),(H-3,0),(H-3,1),(H-3,2)]
+        forbidden |= {(r,c) for (r,c) in cand if 0<=r<H and 0<=c<W}
+    return forbidden
 
-    def __init__(self, R, C):
-        self.R = R
-        self.C = C
-        self.maps = None
-        self.my_tank = None
-        self.allie = None
-        self.allie_num = 0
-        self.enemy = None
-        self.enemy_num = 0
-        self.target = None
-        self.dmap = None
-        self.range_map = None
-        self.current_target = None
-        self.positions = None
-        self.code_num = 0
-        self.code = None
-        self.tot_supper_ammo = 0
+def is_forbidden_cell(r,c):
+    return (r,c) in get_forbidden_cells()
 
-    def update_info(self, allie_num, enemy_num, map_info, allie, enemy, code_num, code): 
-        self.allie_num = allie_num - 1
-        self.my_tank = allie.pop(Battlessafy.MY_TANK)
-        self.tot_supper_ammo = int(self.my_tank[3])
-        self.allie = allie
-        self.enemy_num = enemy_num - 1
-        self.enemy = enemy
-        self.target = enemy.pop(Battlessafy.TARGET)
-        self.code_num = code_num
-        self.code = code
-        self.maps = map_info
-        self.positions = self.find_positions()
-        self.range_map = self.get_range_map()
-        self.current_target = self.target_seeker('ATTACK')
+##############################
+# 이동/경로 (다익스트라)
+##############################
+def terrain_cost(r, c):
+    if is_forbidden_cell(r, c):
+        return None
+    cell = map_data[r][c]
+    if cell == 'G':
+        return 1
+    if cell == 'S':
+        return None
+    return None
 
-    def find_positions(self):
-        positions = {}
-        for row in range(self.R):
-            for col in range(self.C):
-                if self.maps[row][col] == Battlessafy.MY_TANK:
-                    positions[Battlessafy.MY_TANK] = (row, col)
-                elif self.maps[row][col] == Battlessafy.TARGET:
-                    positions[Battlessafy.TARGET] = (row, col)
-                elif self.maps[row][col] == Battlessafy.SUPPLY: 
-                    positions[Battlessafy.SUPPLY] = (row, col)
-                elif self.maps[row][col] in Battlessafy.ALLIES: 
-                    positions[self.maps[row][col]] = (row, col)
-                elif self.maps[row][col] in Battlessafy.ENEMIES: 
-                    positions[self.maps[row][col]] = (row, col)
-                elif self.maps[row][col] == Battlessafy.BASE: 
-                    positions[Battlessafy.BASE] = (row, col)
+def terrain_cost_supply(r, c):
+    if is_forbidden_cell(r, c):
+        return None
+    cell = map_data[r][c]
+    if cell == 'G':
+        return 1
+    if cell == 'T':
+        return 2
+    return None
 
-        return positions
+def reconstruct_commands(prev, start, goal):
+    path_dirs = []
+    cur = goal
+    while cur != start and cur in prev:
+        pr, pc, d_idx = prev[cur]
+        path_dirs.append(d_idx)
+        cur = (pr, pc)
+    path_dirs.reverse()
+    return [M_CMD[d] for d in path_dirs]
 
-    def get_range_map(self): 
-        rmap = [[[] for _ in range(self.C)]  for _ in range(self.R)]
-        br, bc = self.positions[Battlessafy.BASE]
-        for r in range(-3, 3): 
-            for c in range(-3, 3): 
-                if 0 <= br+r < self.R and 0 <= bc+c < self.C: 
-                    rmap[br+r][bc+c].append(Battlessafy.BASE)
-        for row in range(self.R): 
-            for col in range(self.C): 
-                if self.maps[row][col] in Battlessafy.ENEMIES+[Battlessafy.TARGET]: 
-                    for dir in range(4): 
-                        r, c = Battlessafy.DIRS[dir]
-                        for ofs in range(1, 4): 
-                            nrow, ncol = row+(r*ofs), col+(c*ofs)
-                            if (0 <= nrow < self.R and 0 <= ncol <self.C
-                                and self.maps[nrow][ncol] not in [Battlessafy.ROCK, Battlessafy.TREE, Battlessafy.SUPPLY]): 
-                                rmap[nrow][ncol].append(self.maps[row][col])
-                            else: 
-                                break
-                if self.maps[row][col] == Battlessafy.SUPPLY: 
-                    for dir in range(4): 
-                        r, c = Battlessafy.DIRS[dir]
-                        nrow, ncol = row+r, col+c
-                        if (0 <= nrow < self.R and 0 <= ncol <self.C
-                            and self.maps[nrow][ncol] not in [Battlessafy.ROCK, Battlessafy.TREE, Battlessafy.SUPPLY]): 
-                            rmap[nrow][ncol].append(self.maps[row][col])
-        return rmap
-    
-    def solv_code(self, code): 
-        code_list = list(code)
-        for i in range(len(code)): 
-            code_list[i] = ord(code_list[i]) + 9
-        for i in range(len(code)): 
-            if code_list[i] > 90: 
-                code_list[i] -= 26
-            code_list[i] = chr(code_list[i])
-        result = ''.join(code_list)
-        return result
-    
-    def target_seeker(self, mode): 
-        supply = self.positions.get(Battlessafy.SUPPLY)
-        my_pos = self.positions.get(Battlessafy.MY_TANK)
-        base = self.positions.get(Battlessafy.BASE)
-        if my_pos is None or not self.range_map:
-            return Battlessafy.TARGET
+def dijkstra_to_positions_generic(start, targets, cost_fn):
+    H, W = get_map_size()
+    INF = 10**9
+    dist = [[INF]*W for _ in range(H)]
+    prev = {}
+    sr, sc = start
+    dist[sr][sc] = 0
+    pq = [(0, sr, sc)]
+    while pq:
+        cost, r, c = heapq.heappop(pq)
+        if cost != dist[r][c]:
+            continue
+        if (r, c) in targets:
+            return reconstruct_commands(prev, start, (r, c))
+        for d_idx, (dr, dc) in enumerate(DIRS):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < H and 0 <= nc < W:
+                t_cost = cost_fn(nr, nc)
+                if t_cost is None:
+                    continue
+                ncost = cost + t_cost
+                if ncost < dist[nr][nc]:
+                    dist[nr][nc] = ncost
+                    prev[(nr, nc)] = (r, c, d_idx)
+                    heapq.heappush(pq, (ncost, nr, nc))
+    return []
 
+def dijkstra_to_positions(start, targets):
+    return dijkstra_to_positions_generic(start, targets, terrain_cost)
 
+def dijkstra_to_positions_allow_T(start, targets):
+    return dijkstra_to_positions_generic(start, targets, terrain_cost_supply)
+
+def dijkstra_to_specific(target_pos):
+    start = get_my_position()
+    if not start or not target_pos:
+        return []
+    if is_forbidden_cell(*target_pos):
+        return []
+    return dijkstra_to_positions(start, {target_pos})
+
+def dijkstra_to_first_adjacent_of(symbol):
+    start = get_my_position()
+    if not start:
+        return []
+    H, W = get_map_size()
+    targets = set()
+    for r in range(H):
+        for c in range(W):
+            if terrain_cost(r, c) is None:
+                continue
+            for dr, dc in DIRS:
+                nr, nc = r+dr, c+dc
+                if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == symbol:
+                    if not is_forbidden_cell(r, c):
+                        targets.add((r, c))
+                    break
+    return dijkstra_to_positions(start, targets)
+
+def dijkstra_to_first_adjacent_of_supply(symbol):
+    start = get_my_position()
+    if not start:
+        return []
+    H, W = get_map_size()
+    targets = set()
+    for r in range(H):
+        for c in range(W):
+            if terrain_cost_supply(r, c) is None:
+                continue
+            for dr, dc in DIRS:
+                nr, nc = r+dr, c+dc
+                if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == symbol:
+                    if not is_forbidden_cell(r, c):
+                        targets.add((r, c))
+                    break
+    return dijkstra_to_positions_generic(start, targets, terrain_cost_supply)
+
+##############################
+# 전투/표적
+##############################
+def find_enemy_tanks():
+    H, W = get_map_size()
+    out = []
+    for r in range(H):
+        for c in range(W):
+            if map_data[r][c] in ['E1','E2','E3']:
+                out.append((r,c,map_data[r][c]))
+    return out
+
+def find_all_enemies():
+    H, W = get_map_size()
+    out = []
+    for r in range(H):
+        for c in range(W):
+            if map_data[r][c] in ['E1','E2','E3','X']:
+                out.append((r,c,map_data[r][c]))
+    return out
+
+# ★ 변경: 공격 주체가 기지(H/X)이면 사거리 2, 그 외는 3
+def can_attack(from_pos, to_pos):
+    if not from_pos or not to_pos:
+        return False, -1
+    fr, fc = from_pos
+    tr, tc = to_pos
+
+    attacker = map_data[fr][fc] if in_bounds(fr, fc) else ''
+    max_range = 2 if attacker in ('H', 'X') else 3  # ★ 핵심 수정
+
+    if fr == tr:
+        if fc < tc:
+            for c in range(fc+1, tc):
+                if map_data[fr][c] not in ['G','S','W']:
+                    return False, -1
+            if abs(tc-fc) <= max_range:
+                return True, 0
+        else:
+            for c in range(tc+1, fc):
+                if map_data[fr][c] not in ['G','S','W']:
+                    return False, -1
+            if abs(fc-tc) <= max_range:
+                return True, 2
+    elif fc == tc:
+        if fr < tr:
+            for r in range(fr+1, tr):
+                if map_data[r][fc] not in ['G','S','W']:
+                    return False, -1
+            if abs(tr-fr) <= max_range:
+                return True, 1
+        else:
+            for r in range(tr+1, fr):
+                if map_data[r][fc] not in ['G','S','W']:
+                    return False, -1
+            if abs(fr-tr) <= max_range:
+                return True, 3
+    return False, -1
+
+def get_enemy_hp(enemy_code):
+    try:
+        if enemy_code in enemies and len(enemies[enemy_code]) >= 1:
+            return int(enemies[enemy_code][0])
+    except:
+        pass
+    return None
+
+##############################
+# 아군/차폐/라인 판정 (요청 핵심)
+##############################
+def is_allied_tank_cell(cell_val):
+    if cell_val in ('', 'G', 'S', 'W', 'T', 'F', 'H', 'M', 'E1', 'E2', 'E3', 'X'):
+        return False
+    return cell_val in my_allies and cell_val not in ('M', 'H')
+
+def find_allied_tanks_positions():
+    H, W = get_map_size()
+    out = []
+    for r in range(H):
+        for c in range(W):
+            if is_allied_tank_cell(map_data[r][c]):
+                out.append((r, c))
+    return out
+
+def cells_between_on_line(a, b):
+    (r1, c1), (r2, c2) = a, b
+    cells = []
+    if r1 == r2:
+        step = 1 if c1 < c2 else -1
+        for c in range(c1 + step, c2, step):
+            cells.append((r1, c))
+    elif c1 == c2:
+        step = 1 if r1 < r2 else -1
+        for r in range(r1 + step, r2, step):
+            cells.append((r, c1))
+    return cells
+
+def move_blocks_ally_fire(next_pos):
+    """내가 next_pos로 이동하면 아군→적의 사격 라인을 가로막는가?"""
+    allies = find_allied_tanks_positions()
+    enemies_all = find_all_enemies()
+    for ar, ac in allies:
+        for er, ec, _ in enemies_all:
+            ok, _ = can_attack((ar, ac), (er, ec))
+            if not ok:
+                continue
+            if next_pos in cells_between_on_line((ar, ac), (er, ec)):
+                return True
+    return False
+
+def enemies_threat_detail(pos):
+    """
+    pos가 적의 사격경로 안인가?
+      - blocked_by_ally: 그 경로상에 '다른 아군 탱크'가 있는가
+      - enemy_hits_turret: 그 적이 우리 타워(H)를 때릴 수 있는 위치인가
+    """
+    allies_set = set(find_allied_tanks_positions())
+    turret = get_allied_turret_position()
+    for er, ec, _ in find_all_enemies():
+        ok, _dir = can_attack((er, ec), pos)
+        if not ok:
+            continue
+        blocked_by_ally = any((cr, cc) in allies_set for (cr, cc) in cells_between_on_line((er, ec), pos))
+        enemy_hits_turret = False
+        if turret:
+            can_hit_turret, _ = can_attack((er, ec), turret)
+            enemy_hits_turret = can_hit_turret
+        return True, blocked_by_ally, enemy_hits_turret
+    return False, False, False
+
+##############################
+# 안전 가드 + S 집계/대안
+##############################
+def cmd_to_dir(cmd):
+    for i, m in enumerate(M_CMD):
+        if cmd == m:
+            return i
+    return None
+
+def shoot_adjacent_T_if_any():
+    """인접 T 우선 사격"""
+    mr, mc = get_my_position()
+    if (mr, mc) is None:
+        return None
+    H, W = get_map_size()
+    for i, (dr, dc) in enumerate(DIRS):
+        nr, nc = mr + dr, mc + dc
+        if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'T':
+            return S_CMD[i]
+    return None
+
+def safe_G_move_if_any():
+    """적 사격경로(차폐 없는) 아닌 인접 G로 이동"""
+    mr, mc = get_my_position()
+    if (mr, mc) is None:
+        return None
+    H, W = get_map_size()
+    for i, (dr, dc) in enumerate(DIRS):
+        nr, nc = mr + dr, mc + dc
+        if not (0 <= nr < H and 0 <= nc < W):
+            continue
+        if is_forbidden_cell(nr, nc):
+            continue
+        if map_data[nr][nc] != 'G':
+            continue
+        threat, blocked_by_ally, _ = enemies_threat_detail((nr, nc))
+        if not threat or blocked_by_ally:
+            return M_CMD[i]
+    return None
+
+def track_stop_and_return_S():
+    """S 사용 시도(총 2회, 턴당 1회). 불가하면 None."""
+    global S_USAGE_COUNT, safety_stop_used_this_turn, stop_counted_this_turn
+    if S_USAGE_COUNT >= 2 or safety_stop_used_this_turn:
+        return None
+    S_USAGE_COUNT += 1
+    safety_stop_used_this_turn = True
+    stop_counted_this_turn = True
+    return "S"
+
+def choose_shoot_T_or_safe_move(fallback_target=None):
+    """S가 더 못 쓰일 때: 1순위 T 파괴 → 2순위 안전 G 이동"""
+    shoot = shoot_adjacent_T_if_any()
+    if shoot:
+        return shoot
+    safe = safe_G_move_if_any()
+    if safe:
+        return safe
+    return None
+
+def apply_safety_guard(action, fallback_target=None):
+    """
+    이동 직전에 안전가드 적용:
+    - 다음 칸이 적 사격경로이면
+      - 그 경로상에 '다른 아군 탱크'가 있거나, 그 적이 우리 타워(H)를 칠 수 있는 위치라면 → 이동 허용
+      - 아니면, 내가 이동해 아군→적 라인을 막는 경우 포함 → S 시도(총 2/턴1), 실패 시 T 사격→안전 G 이동, 그래도 없으면 이동 강행
+    """
+    d = cmd_to_dir(action)
+    if d is None:
+        return action  # 이동 아닌 명령
+
+    mr, mc = get_my_position()
+    dr, dc = DIRS[d]
+    nr, nc = mr + dr, mc + dc
+
+    # 불가/금지 → 대안
+    if not in_bounds(nr, nc) or is_forbidden_cell(nr, nc):
+        alt = choose_shoot_T_or_safe_move(fallback_target)
+        if alt:
+            return alt
+        s_try = track_stop_and_return_S()
+        return s_try if s_try else action
+
+    # 내가 이동하면 아군의 사격 라인을 막는가?
+    if move_blocks_ally_fire((nr, nc)):
+        s_try = track_stop_and_return_S()
+        if s_try:
+            return s_try
+        alt = choose_shoot_T_or_safe_move(fallback_target)
+        if alt:
+            return alt
+        return action  # 강행
+
+    # 다음 칸 위협 상세
+    threat, blocked_by_ally, enemy_hits_turret = enemies_threat_detail((nr, nc))
+    if threat:
+        if blocked_by_ally or enemy_hits_turret:
+            return action  # 이동 허용
+        s_try = track_stop_and_return_S()
+        if s_try:
+            return s_try
+        alt = choose_shoot_T_or_safe_move(fallback_target)
+        if alt:
+            return alt
+        return action  # 대안 없으면 강행
+
+    # 위협 없음 → 이동
+    return action
+
+##############################
+# 보급/해독
+##############################
+def is_adjacent_to_supply():
+    my_pos = get_my_position()
+    if not my_pos:
+        return False
+    H, W = get_map_size()
+    r, c = my_pos
+    for dr, dc in DIRS:
+        nr, nc = r+dr, c+dc
+        if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'F':
+            return True
+    return False
+
+def nearest_distance_to_targets(pos, targets):
+    if not targets:
+        return float('inf')
+    pr, pc = pos
+    return min(abs(pr - tr) + abs(pc - tc) for (tr, tc) in targets)
+
+def fallback_move_adjacent_G_towards_target(target_pos):
+    my_pos = get_my_position()
+    if not my_pos or not target_pos:
+        return None
+    H, W = get_map_size()
+    mr, mc = my_pos
+    best = None
+    best_score = float('inf')
+    for i, (dr, dc) in enumerate(DIRS):
+        nr, nc = mr + dr, mc + dc
+        if not in_bounds(nr, nc): continue
+        if is_forbidden_cell(nr, nc): continue
+        if map_data[nr][nc] != 'G': continue
+        score = distance((nr, nc), target_pos)
+        if score < best_score:
+            best_score = score
+            best = i
+    if best is not None:
+        return M_CMD[best]
+    return None
+
+def fallback_move_adjacent_G_towards_F():
+    my_pos = get_my_position()
+    if not my_pos:
+        return None
+    F_targets = find_all_symbols('F')
+    H, W = get_map_size()
+    mr, mc = my_pos
+    best = None
+    best_score = float('inf')
+    for i, (dr, dc) in enumerate(DIRS):
+        nr, nc = mr + dr, mc + dc
+        if not in_bounds(nr, nc): continue
+        if is_forbidden_cell(nr, nc): continue
+        if map_data[nr][nc] != 'G': continue
+        score = nearest_distance_to_targets((nr, nc), F_targets)
+        if score < best_score:
+            best_score = score
+            best = i
+    if best is not None:
+        return M_CMD[best]
+    return None
+
+def find_closest_supply_to_base():
+    base = get_allied_turret_position()
+    if not base:
+        return None
+    Fs = find_all_symbols('F')
+    if not Fs:
+        return None
+    return min(Fs, key=lambda p: distance(base, p))
+
+def dijkstra_to_adjacent_of_specific_supply(f_pos):
+    start = get_my_position()
+    if not start or not f_pos:
+        return []
+    H, W = get_map_size()
+    targets = set()
+    for r in range(H):
+        for c in range(W):
+            if terrain_cost_supply(r, c) is None:
+                continue
+            for dr, dc in DIRS:
+                nr, nc = r + dr, c + dc
+                if (nr, nc) == f_pos and not is_forbidden_cell(r, c):
+                    targets.add((r, c))
+                    break
+    if not targets:
+        return []
+    return dijkstra_to_positions_generic(start, targets, terrain_cost_supply)
+
+##############################
+# 웨이포인트 (part3 정찰)
+##############################
+def get_corner():
+    t = get_allied_turret_position()
+    if not t:
+        return None
+    H, W = get_map_size()
+    tr, tc = t
+    if tr == 0 and tc == W-1:
+        return "TR"
+    if tr == H-1 and tc == 0:
+        return "BL"
+    return None
+
+def is_good_stand_cell(r, c):
+    if not in_bounds(r, c):
+        return False
+    if is_forbidden_cell(r, c):
+        return False
+    return map_data[r][c] == 'G'
+
+def clamp_waypoints(pts):
+    return [(r,c) for (r,c) in pts if is_good_stand_cell(r,c)]
+
+def build_part3_waypoints():
+    corner = get_corner()
+    if corner is None:
+        return []
+    H, W = get_map_size()
+    if corner == "BL":
+        raw = [(H-4,2),(H-4,3),(H-3,3)]
+    else:  # TR
+        raw = [(2, W-4),(3, W-4),(3, W-3)]
+    wps = clamp_waypoints(raw)
+    if len(wps) < 3:
+        wps = []
+        for r, c in raw:
+            if in_bounds(r,c) and not is_forbidden_cell(r,c) and map_data[r][c] != 'T':
+                wps.append((r,c))
+    return wps[:3]
+
+##############################
+# 의사결정
+##############################
+def decide_supply_phase_action():
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    # 1) 기회 사격 (이동보다 우선)
+    for er, ec, et in find_enemy_tanks():
+        ok, d = can_attack(my_pos, (er, ec))
+        if ok:
+            hp = get_enemy_hp(et)
+            if get_mega_bomb_count() == 1:
+                return S_MEGA_CMD[d]
+            if hp is not None and hp <= 30:
+                return S_CMD[d]
+            return S_CMD[d]
+
+    # 2) 해독
+    if codes and is_adjacent_to_supply():
+        decoded = find_valid_caesar_decode(codes[0])
+        if decoded:
+            return f"G {decoded}"
+
+    # 3) 기지에서 가장 가까운 F 인접칸까지 (G=1,T=2로 탐색, 첫 칸 T면 사격)
+    closest_f = find_closest_supply_to_base()
+    if closest_f:
+        path = dijkstra_to_adjacent_of_specific_supply(closest_f)
+        if path:
+            first_cmd = path[0]
+            d = cmd_to_dir(first_cmd)
+            if d is not None:
+                mr, mc = get_my_position()
+                dr, dc = DIRS[d]
+                nr, nc = mr + dr, mc + dc
+                if in_bounds(nr, nc) and map_data[nr][nc] == 'T':
+                    return S_CMD[d]
+                if in_bounds(nr, nc) and map_data[nr][nc] == 'G':
+                    return apply_safety_guard(first_cmd, fallback_target=closest_f)
+
+            fb = fallback_move_adjacent_G_towards_target(closest_f)
+            if fb:
+                return apply_safety_guard(fb, fallback_target=closest_f)
+            return "S"
+
+        fb = fallback_move_adjacent_G_towards_target(closest_f)
+        if fb:
+            return apply_safety_guard(fb, fallback_target=closest_f)
+        return "S"
+
+    fb = fallback_move_adjacent_G_towards_F()
+    if fb:
+        return apply_safety_guard(fb)
+    return "S"
+
+def decide_defense_action():
+    global route_position, route_direction, current_route
+
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    # 1) 즉시 사격
+    for er, ec, et in find_enemy_tanks():
+        ok, d = can_attack(my_pos, (er, ec))
+        if ok:
+            hp = get_enemy_hp(et)
+            if hp is not None and hp <= 30:
+                return S_CMD[d]
+            if get_mega_bomb_count() > 0:
+                return S_MEGA_CMD[d]
+            return S_CMD[d]
+
+    # 2) part3 웨이포인트 순찰
+    wps = build_part3_waypoints()
+    if wps:
+        if my_pos in wps:
+            route_position = wps.index(my_pos)
+        if route_direction not in (1, -1):
+            route_direction = 1
+        next_idx = route_position + route_direction
+        if next_idx >= len(wps):
+            next_idx = len(wps)-2 if len(wps) >= 2 else 0
+            route_direction = -1
+        elif next_idx < 0:
+            next_idx = 1 if len(wps) >= 2 else 0
+            route_direction = 1
+        target = wps[next_idx] if my_pos in wps else min(wps, key=lambda p: distance(my_pos, p))
+        path = dijkstra_to_specific(target)
+        if path:
+            return apply_safety_guard(path[0], fallback_target=target)
+
+    # 3) 포탑 근처 한 칸(최소 방어)
+    t = get_allied_turret_position()
+    if t:
+        mr, mc = my_pos
+        for i, (dr, dc) in enumerate(DIRS):
+            nr, nc = mr+dr, mc+dc
+            if in_bounds(nr, nc) and is_good_stand_cell(nr, nc):
+                return apply_safety_guard(M_CMD[i], fallback_target=t)
+
+    return "S"
+
+##############################
+# ★ 추가: 오프셋 목적지 생성 (X 기준 ±dr, ±dc)
+##############################
+def build_enemy_base_offset_targets(dr_off, dc_off):
+    base = get_enemy_turret_position()
+    if not base:
+        return set()
+    br, bc = base
+    cand = {(br+dr_off, bc+dc_off), (br+dr_off, bc-dc_off),
+            (br-dr_off, bc+dc_off), (br-dr_off, bc-dc_off)}
+    H, W = get_map_size()
+    targets = set()
+    for r, c in cand:
+        if 0 <= r < H and 0 <= c < W and not is_forbidden_cell(r, c) and terrain_cost_supply(r, c) is not None:
+            targets.add((r, c))
+    return targets
+
+##############################
+# ★ 40턴 이후 전진 로직 (요청 조건 반영)
+##############################
+def min_enemy_tank_to_my_base():
+    """적 탱크(E1/E2/E3)들의 H(내 기지)까지 최소 거리"""
+    Hpos = get_allied_turret_position()
+    if not Hpos:
+        return None
+    ets = find_enemy_tanks()
+    if not ets:
+        return None
+    return min(distance((er,ec), Hpos) for er,ec,_ in ets)
+
+def collect_targets_closer_to_X_by2(required_max_dist_to_X):
+    """
+    dist(cell, X) <= required_max_dist_to_X 를 만족하는 이동가능(G/T) 셀 집합
+    (금지칸 제외, S/W 제외)
+    """
+    X = get_enemy_turret_position()
+    if not X:
+        return set()
+    H, W = get_map_size()
+    targets = set()
+    for r in range(H):
+        for c in range(W):
+            if terrain_cost_supply(r, c) is None:  # G 또는 T만 허용
+                continue
+            if distance((r, c), X) <= required_max_dist_to_X and not is_forbidden_cell(r, c):
+                targets.add((r, c))
+    return targets
+
+def decide_midgame_action():
+    """
+    40턴 이후:
+      - (요구3) 이동 전: 사거리 내 적 탱크 우선 사격
+      - (요구2) 적 기지(X) 기준 (±dr, ±dc) 목적지로 전진, 도착/경로 중 X 사거리 되면 즉시 타격
+      - 그 외 기존 압박 로직 폴백
+    """
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    # 0) 적 탱크 우선 사격 (요구3)
+    for er, ec, et in find_enemy_tanks():
+        ok, d = can_attack(my_pos, (er, ec))
+        if ok:
+            hp = get_enemy_hp(et)
+            if hp is not None and hp <= 30:
+                return S_CMD[d]
+            if get_mega_bomb_count() > 0:
+                return S_MEGA_CMD[d]
+            return S_CMD[d]
+
+    X = get_enemy_turret_position()
+    if not X:
+        return decide_defense_action()
+
+    # 현재 위치에서 X 사거리면 즉시 타격
+    can_x, dir_x = can_attack(my_pos, X)
+    if can_x:
+        return S_MEGA_CMD[dir_x] if get_mega_bomb_count() > 0 else S_CMD[dir_x]
+
+    # (요구2) 오프셋 목적지 집합 생성 → 전진
+    offset_targets = build_enemy_base_offset_targets(BASE_OFFSET_DR, BASE_OFFSET_DC)
+    if offset_targets:
+        if my_pos in offset_targets:
+            can_x2, dir_x2 = can_attack(my_pos, X)
+            if can_x2:
+                return S_MEGA_CMD[dir_x2] if get_mega_bomb_count() > 0 else S_CMD[dir_x2]
+        path = dijkstra_to_positions_allow_T(my_pos, offset_targets)
+        if path:
+            first_cmd = path[0]
+            d = cmd_to_dir(first_cmd)
+            if d is not None:
+                mr, mc = get_my_position()
+                dr, dc = DIRS[d]
+                nr, nc = mr + dr, mc + dc
+                if in_bounds(nr, nc) and map_data[nr][nc] == 'T':
+                    return S_CMD[d]  # 나무는 부수고
+                if in_bounds(nr, nc) and map_data[nr][nc] == 'G':
+                    return apply_safety_guard(first_cmd, fallback_target=X)
+
+    # 기존 압박 폴백 (baseline 기반 → X 인접칸)
+    base_line = min_enemy_tank_to_my_base()
+    if base_line is not None:
+        required = max(0, base_line - 2)
+        targets = collect_targets_closer_to_X_by2(required)
+        if targets:
+            path2 = dijkstra_to_positions_allow_T(my_pos, targets)
+            if path2:
+                first_cmd = path2[0]
+                d = cmd_to_dir(first_cmd)
+                if d is not None:
+                    mr, mc = get_my_position()
+                    dr, dc = DIRS[d]
+                    nr, nc = mr + dr, mc + dc
+                    if in_bounds(nr, nc) and map_data[nr][nc] == 'T':
+                        return S_CMD[d]
+                    if in_bounds(nr, nc) and map_data[nr][nc] == 'G':
+                        return apply_safety_guard(first_cmd, fallback_target=X)
+
+    path3 = dijkstra_to_first_adjacent_of_supply('X')
+    if path3:
+        first_cmd = path3[0]
+        d = cmd_to_dir(first_cmd)
+        if d is not None:
+            mr, mc = get_my_position()
+            dr, dc = DIRS[d]
+            nr, nc = mr + dr, mc + dc
+            if in_bounds(nr, nc) and map_data[nr][nc] == 'T':
+                return S_CMD[d]
+            if in_bounds(nr, nc) and map_data[nr][nc] == 'G':
+                return apply_safety_guard(first_cmd, fallback_target=X)
+
+    fb = fallback_move_adjacent_G_towards_target(X)
+    if fb:
+        return apply_safety_guard(fb, fallback_target=X)
+    return "S"
+
+##############################
+# 턴 제어/집계 보조
+##############################
+def reset_turn_flags():
+    global safety_stop_used_this_turn, stop_counted_this_turn
+    safety_stop_used_this_turn = False
+    stop_counted_this_turn = False
+
+def finalize_stop_count(cmd):
+    """이번 턴 최종 명령이 'S'이고 아직 반영 안했으면 카운트(단, 총 2회 한정)."""
+    global S_USAGE_COUNT, stop_counted_this_turn
+    if cmd == "S" and not stop_counted_this_turn and S_USAGE_COUNT < 2:
+        S_USAGE_COUNT += 1
+        stop_counted_this_turn = True
+
+##############################
+# 메인 루프
+##############################
+if __name__ == "__main__":
+    NICKNAME = '40턴_박유신'
+    game_data = init(NICKNAME)
+    turn_count = 0
+
+    while game_data is not None:
+        parse_data(game_data)
+        reset_turn_flags()
+
+        # 메가탄 플래그 업데이트
+        mega_count = get_mega_bomb_count()
+        if mega_count >= 2:
+            mega_bombs_acquired = True
+
+        # --- 의사결정 ---
+        if turn_count < 40:
+            if (mega_count < 2) and (not mega_bombs_acquired):
+                output = decide_supply_phase_action()
+            else:
+                output = decide_defense_action()
+        else:
+            # 40턴부터 상대 기지(X) 근처로 전진 (요청 조건 반영)
+            output = decide_midgame_action()
+
+        # S 집계 마무리 (중복 방지)
+        finalize_stop_count(output)
+
+        # 명령 전송 및 다음 입력 수신
+        game_data = submit(output)
         if game_data:
-            print(f"{NICKNAME} state:")
-            print(game_data)
+            turn_count += 1
 
-        if mode == 'ATTACK': 
-            if int(self.target[0]) <= 30: 
-                return Battlessafy.TARGET
-            elif set(self.range_map[my_pos[0]][my_pos[1]]).intersection(set(Battlessafy.ENEMIES)): 
-                target = self.range_map[my_pos[0]][my_pos[1]][0]
-                t_idx = 1
-                while target not in Battlessafy.ENEMIES: 
-                    target = self.range_map[my_pos[0]][my_pos[1]][t_idx]
-                    t_idx += 1
-                    if t_idx == len(self.range_map[my_pos[0]][my_pos[1]]): 
-                        return target
-                return target
-            elif supply and int(self.my_tank[3]) < 2 and self.tot_supper_ammo < 2:  
-                return Battlessafy.SUPPLY
-            else: 
-                return Battlessafy.TARGET
-        # if mode == 'DEFENCE': 
-        #     for enemy, epos in self.positions.items(): 
-        #         if get_manhatan_distance(my_pos, epos) < 8:
-        #             return enemy 
-        #     if (get_manhatan_distance(my_pos, supply) < 10 and supply 
-        #           and int(self.my_tank[3]) < 3 and self.tot_supper_ammo < 3):
-        #         return Battlessafy.SUPPLY
-        #     elif get_manhatan_distance(my_pos, base) > 8: 
-        #         print(f'me-base dis: {get_manhatan_distance(my_pos, base)}')
-        #         return Battlessafy.BASE 
-        #     else: 
-        #         return 'Rand'
-                
-    
-    def path_find(self):
-        pqueue = []
-        start = self.positions.get(Battlessafy.MY_TANK)
-        if start is None or not self.range_map or not self.current_target:
-            return 'S'
-
-        visited = {start}
-        command = ''
-        print(f'Target: {self.current_target}')
-
-        # if self.current_target == 'Rand': 
-        #     dir = random.randint(0, 3)
-        #     r, c = Battlessafy.DIRS[dir]
-        #     while (self.maps[start[0]+r][self[1]+c] 
-        #             in ['T', 'R', 'W', 'F', 'H']+Battlessafy.ALLIES+Battlessafy.ENEMIES): 
-        #         dir = random.randint(0, 3)
-        #         r, c = Battlessafy.DIRS[dir]
-        #     command = Battlessafy.MOVE_CMDS[dir]
-        #     return command
-
-        if self.current_target in self.range_map[start[0]][start[1]]: 
-            if self.current_target == Battlessafy.SUPPLY: 
-                if self.code: 
-                    codes = self.code.pop()
-                    result = self.solv_code(codes)
-                    self.tot_supper_ammo += 1
-                    return Battlessafy.CODE+result
-            for dir in range(4): 
-                r, c = Battlessafy.DIRS[dir]
-                for ofs in range(1, 4): 
-                    nrow, ncol = start[0]+(r*ofs), start[1]+(c*ofs)
-                    if 0 <= nrow < self.R and 0 <= ncol < self.C and self.maps[nrow][ncol] == self.current_target:
-                        command = Battlessafy.FIRE_CMDS[dir]
-                        if self.current_target == Battlessafy.TARGET: 
-                            if int(self.target[0]) > 30: 
-                                command = self.fire_supper(command)
-                        else: 
-                            if int(self.enemy.get(self.current_target)[0]) > 30: 
-                                command = self.fire_supper(command)
-                        return command
-
-        for dir in range(4): 
-            r, c = Battlessafy.DIRS[dir]
-            nrow, ncol = start[0]+r, start[1]+c
-            if (0 <= nrow < self.R and 0 <= ncol < self.C 
-                and self.maps[nrow][ncol] not in 
-                [Battlessafy.ROCK, Battlessafy.WATER, Battlessafy.SUPPLY, Battlessafy.TARGET]+Battlessafy.ENEMIES+Battlessafy.ALLIES): 
-                dist = Battlessafy.DISTANCE[self.maps[nrow][ncol]]
-                if self.range_map[nrow][ncol]: 
-                    for enemy in self.range_map[nrow][ncol]: 
-                        dist += Battlessafy.DISTANCE.get(enemy, 0)
-                heappush(pqueue, (dist, (nrow, ncol), dir))
-
-        while pqueue:
-            dist, (row, col), init_dir = heappop(pqueue)
-            visited.add((row, col))
-
-            if self.current_target in self.range_map[row][col]: 
-                r, c = Battlessafy.DIRS[init_dir]
-                if self.maps[start[0]+r][start[1]+c] == Battlessafy.TREE: 
-                    command = Battlessafy.FIRE_CMDS[init_dir]
-                    command = self.fire(command)
-                    return command
-                else: 
-                    command = Battlessafy.MOVE_CMDS[init_dir]
-                    return command
-
-            for dir in range(4): 
-                r, c = Battlessafy.DIRS[dir]
-                nrow, ncol = row+r, col+c
-                if (0 <= nrow < self.R and 0 <= ncol < self.C and (nrow, ncol) not in visited
-                    and self.maps[nrow][ncol] not in 
-                    [Battlessafy.ROCK, Battlessafy.WATER, Battlessafy.SUPPLY, Battlessafy.TARGET]+Battlessafy.ENEMIES+Battlessafy.ALLIES): 
-                    ndist = dist + Battlessafy.DISTANCE.get(self.maps[nrow][ncol], 999)
-                    if self.range_map[nrow][ncol]: 
-                        for enemy in self.range_map[nrow][ncol]: 
-                            ndist += Battlessafy.DISTANCE.get(enemy, 0)
-                    heappush(pqueue, (ndist, (nrow, ncol), init_dir))
-    
-    def fire(self, command): 
-        if int(self.my_tank[2]) == 0: 
-            return command+Battlessafy.SUPER_AMMO
-        else: 
-            return command
-
-    def fire_supper(self, command): 
-        if int(self.my_tank[3]) > 0: 
-            return command+Battlessafy.SUPER_AMMO
-        else: 
-            return command
-
-
-# 異쒕컻吏? 紐⑹쟻吏???꾩튂 李얘린
-# def find_positions(grid, start_mark, goal_mark):
-#     rows, cols = len(grid), len(grid[0])
-#     start = goal = None
-
-#     for row in range(rows):
-#         for col in range(cols):
-#             if grid[row][col] == start_mark:
-#                 start = (row, col)
-
-#             elif grid[row][col] == goal_mark:
-#                 goal = (row, col)
-
-#     return start, goal
-
-# 寃쎈줈 ?먯깋 ?뚭퀬由ъ쬁
-# def bfs(grid, start, target, wall):
-#     rows, cols = len(grid), len(grid[0])
-#     queue = deque([(start, [])])
-#     visited = {start}
-
-#     while queue:
-#         (r, c), actions = queue.popleft()
-
-#         for d, (dr, dc) in enumerate(DIRS):
-#             nr, nc = r + dr, c + dc
-#             if (nr, nc) == target:
-#                 return actions + [FIRE_CMDS[d]]
-
-#         for d, (dr, dc) in enumerate(DIRS):
-#             nr, nc = r + dr, c + dc
-
-#             if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] != wall and (nr, nc) not in visited:
-#                 visited.add((nr, nc))
-#                 queue.append(((nr, nc), actions + [MOVE_CMDS[d]]))
-
-#     return []
-
-# 寃쎈줈 ?먯깋 蹂???뺤쓽
-# DIRS = [(0,1), (1,0), (0,-1), (-1,0)]
-# MOVE_CMDS = {0: "R A", 1: "D A", 2: "L A", 3: "U A"}
-# FIRE_CMDS = {0: "R F", 1: "D F", 2: "L F", 3: "U F"}
-# START_SYMBOL = 'M'
-# TARGET_SYMBOL = 'X'
-# WALL_SYMBOL = 'R'
-
-def get_manhatan_distance(p1, p2): 
-    return abs(p1[0]-p2[0]) + abs(p1[1]-p2[1])
-
-battle_ssafy = None
-# 理쒖큹 ?곗씠???뚯떛
-battle_ssafy = parse_data(game_data, battle_ssafy)
-
-# 異쒕컻吏?? 紐⑺몴吏?먯쓽 ?꾩튂 ?뺤씤
-# start, target = find_positions(map_data, START_SYMBOL, TARGET_SYMBOL)
-# if not start or not target:
-#     print("[ERROR] Start or target not found in map")
-#     close()
-#     exit()
-
-# 理쒖큹 寃쎈줈 ?먯깋
-# actions = bfs(map_data, start, target, WALL_SYMBOL)
-# actions = battle_ssafy.path_find()
-
-###################################
-# ?뚭퀬由ъ쬁 ?⑥닔/硫붿꽌??遺遺?援ы쁽 ??
-###################################
-
-# 諛섎났臾? 硫붿씤 ?꾨줈洹몃옩 <-> ?대씪?댁뼵????肄붾뱶) 媛??쒖감濡??곗씠???≪닔???숆린 泥섎━)
-while game_data is not None:
-
-    ##############################
-    # ?뚭퀬由ъ쬁 硫붿씤 遺遺?援ы쁽 ?쒖옉
-    ##############################
-
-    # ?뚯떛???곗씠?곕? ?붾㈃??異쒕젰?섏뿬 ?뺤씤
-    # print_data()
-
-    # ?댁쟾 寃쎈줈 ?먯깋 寃곌낵媛 議댁옱?섏? ?딆쓣 寃쎌슦 ?ㅼ떆 ?먯깋
-    # if not actions:
-    #     actions = battle_ssafy.path_find()
-
-    # ?깊겕瑜??쒖뼱??紐낅졊?대? output??媛믪쑝濡?吏??type: string)
-    # output = actions.pop(0) if actions else 'A'
-
-    # 硫붿씤 ?꾨줈洹몃옩?먯꽌 紐낅졊??泥섎━?????덈룄濡?紐낅졊?대? submit()???몄옄濡??꾨떖
-    actions = battle_ssafy.path_find()
-    print(actions)
-    game_data = submit(actions)
-
-    # submit()??由ы꽩?쇰줈 諛쏆? 媛깆떊???곗씠?곕? ?ㅼ떆 ?뚯떛
-    if game_data:
-        parse_data(game_data, battle_ssafy)
-
-    ##############################
-    # ?뚭퀬由ъ쬁 硫붿씤 援ы쁽 ??
-    ##############################
-
-# 諛섎났臾몄쓣 鍮좎졇?섏솕????硫붿씤 ?꾨줈洹몃옩怨쇱쓽 ?곌껐???꾩쟾???댁젣?섍린 ?꾪빐 close() ?몄텧
-close()
-
+    close()

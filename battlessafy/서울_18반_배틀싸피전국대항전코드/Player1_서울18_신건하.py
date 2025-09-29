@@ -131,52 +131,34 @@ def parse_data(game_data):
 
 
 # 파싱한 데이터를 화면에 출력(디버깅용)
-# 파싱한 데이터를 파일에 출력 (디버깅용)
 def print_data():
-    # 파일 이름 설정
-    output_filename = 'game_state_output.txt'
+    print(f'\n----------입력 데이터----------\n{game_data}\n----------------------------')
 
-    # 파일을 쓰기 모드('w', write)로 열고 내용을 작성합니다.
-    # 전역 변수들에 직접 접근합니다. (game_data, map_data, my_allies, enemies, codes)
-    with open(output_filename, 'w', encoding='utf-8') as f:
-        # 입력 데이터
-        f.write(f'\n----------입력 데이터----------\n{game_data}\n----------------------------\n')
+    print(f'\n[맵 정보] ({len(map_data)} x {len(map_data[0])})')
+    for i in range(len(map_data)):
+        for j in range(len(map_data[i])):
+            print(f'{map_data[i][j]} ', end='')
+        print()
 
-        # 맵 정보
-        # map_data가 전역 변수이므로 len()을 바로 사용
-        f.write(f'\n[맵 정보] ({len(map_data)} x {len(map_data[0])})\n')
-        for i in range(len(map_data)):
-            row_str = ''
-            for j in range(len(map_data[i])):
-                row_str += f'{map_data[i][j]} '
-            f.write(row_str.strip() + '\n')  # 줄 끝의 공백 제거 후 줄바꿈
+    print(f'\n[아군 정보] (아군 수: {len(my_allies)})')
+    for k, v in my_allies.items():
+        if k == 'M':
+            print(f'M (내 탱크) - 체력: {v[0]}, 방향: {v[1]}, 보유한 일반 포탄: {v[2]}개, 보유한 메가 포탄: {v[3]}개')
+        elif k == 'H':
+            print(f'H (아군 포탑) - 체력: {v[0]}')
+        else:
+            print(f'{k} (아군 탱크) - 체력: {v[0]}')
 
-        # 아군 정보
-        f.write(f'\n[아군 정보] (아군 수: {len(my_allies)})\n')
-        for k, v in my_allies.items():
-            if k == 'M':
-                # v[0], v[1], v[2], v[3] 접근 시 데이터 구조가 정확해야 함
-                f.write(f'M (내 탱크) - 체력: {v[0]}, 방향: {v[1]}, 보유한 일반 포탄: {v[2]}개, 보유한 메가 포탄: {v[3]}개\n')
-            elif k == 'H':
-                f.write(f'H (아군 포탑) - 체력: {v[0]}\n')
-            else:
-                f.write(f'{k} (아군 탱크) - 체력: {v[0]}\n')
+    print(f'\n[적군 정보] (적군 수: {len(enemies)})')
+    for k, v in enemies.items():
+        if k == 'X':
+            print(f'X (적군 포탑) - 체력: {v[0]}')
+        else:
+            print(f'{k} (적군 탱크) - 체력: {v[0]}')
 
-        # 적군 정보
-        f.write(f'\n[적군 정보] (적군 수: {len(enemies)})\n')
-        for k, v in enemies.items():
-            if k == 'X':
-                f.write(f'X (적군 포탑) - 체력: {v[0]}\n')
-            else:
-                f.write(f'{k} (적군 탱크) - 체력: {v[0]}\n')
-
-        # 암호문 정보
-        f.write(f'\n[암호문 정보] (암호문 수: {len(codes)})\n')
-        for i in range(len(codes)):
-            f.write(codes[i] + '\n')
-
-    # 파일 저장 완료 메시지는 콘솔에 출력
-    print(f"게임 상태 정보가 '{output_filename}' 파일에 저장되었습니다. 💾")
+    print(f'\n[암호문 정보] (암호문 수: {len(codes)})')
+    for i in range(len(codes)):
+        print(codes[i])
 
 
 ##############################
@@ -200,6 +182,9 @@ mega_bombs_acquired = False
 current_route = None
 route_position = 0
 route_direction = 1  # 1: 정방향, -1: 역방향
+
+# 전역 변수 - 턴 수 관리
+turn_count = 0
 
 # 방향 벡터 정의
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 우, 하, 좌, 상
@@ -524,6 +509,48 @@ def distance(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
 
+def get_enemy_turret_position():
+    """적 포탑(X)의 위치 반환"""
+    return find_symbol(map_data, 'X')
+
+
+def get_our_tanks_positions():
+    """아군 탱크들(M, M2, M3)의 위치 반환"""
+    tanks = []
+    Hn, Wn = get_map_size()
+    for r in range(Hn):
+        for c in range(Wn):
+            if map_data[r][c] in ['M', 'M2', 'M3']:
+                tanks.append((r, c))
+    return tanks
+
+
+def calculate_x_to_all():
+    """X(적군 포탑)로부터 아군 탱크들(M, M2, M3)까지의 거리의 합"""
+    x_pos = get_enemy_turret_position()
+    if not x_pos:
+        return float('inf')
+
+    our_tanks = get_our_tanks_positions()
+    total_distance = 0
+    for tank_pos in our_tanks:
+        total_distance += distance(x_pos, tank_pos)
+    return total_distance
+
+
+def calculate_h_to_enu():
+    """H(아군 포탑)로부터 적군 탱크들(E1, E2, E3)까지의 거리의 합"""
+    h_pos = get_allied_turret_position()
+    if not h_pos:
+        return float('inf')
+
+    enemy_tanks = find_enemy_tanks()
+    total_distance = 0
+    for er, ec, _ in enemy_tanks:
+        total_distance += distance(h_pos, (er, ec))
+    return total_distance
+
+
 def nearest_enemy_distance(pos):
     """해당 위치에서 가장 가까운 적까지의 맨해튼 거리"""
     es = find_all_enemies()
@@ -585,13 +612,15 @@ def move_blocks_ally_fire(next_pos):
 
 def enemies_threat_detail(pos):
     """
-    pos가 적의 사격경로 안인가?
+    pos가 적의 사격경로 안인가? (X 제외 - X는 포격하지 않음)
       - blocked_by_ally: 그 경로상에 '다른 아군 탱크'가 있는가
       - enemy_hits_turret: 그 적이 우리 타워(H)를 때릴 수 있는 위치인가
     """
     allies_set = set(find_allied_tanks_positions())
     turret = get_allied_turret_position()
-    for er, ec, _ in find_all_enemies():
+    for er, ec, etype in find_all_enemies():
+        if etype == 'X':  # X는 포격하지 않으므로 위협으로 간주하지 않음
+            continue
         ok, _dir = can_attack((er, ec), pos)
         if not ok:
             continue
@@ -873,28 +902,22 @@ def get_optimal_defense_positions():
                     pts = pts[:2]
             return [("patrol_bottom_row", pts)]
 
-    # === TR: 맨 위 행에서 타워와 가로거리 3,4 두 점만 왕복 (수정된 부분) ===
-    if tr == 0:
-        r = 0
-        candidates = []
-        # 타워 왼쪽으로 3, 4칸 (경계/금지/지형 체크)
-        for dc in (3, 4):
-            c = tc - dc
-            if 0 <= c < Wn and ok(r, c):
-                candidates.append((r, c))
-        # 두 점이 다 유효하면 그 두 점만 왕복
-        if len(candidates) >= 2:
-            return [("patrol_top_row_3_4", candidates)]
-        # 한 점만 유효한 경우, 기존 상단 스캔으로 폴백(너무 멈춰있지 않게)
-        cols = list(range(1, max(1, Wn - 3)))
-        pts = [(r, c) for c in cols if ok(r, c)]
-        if len(pts) >= 2:
-            if len(pts) > 6:
-                step = max(1, len(pts) // 6)
-                pts = pts[::step]
-                if len(pts) < 2:
-                    pts = pts[:2]
-            return [("patrol_top_row_fallback", pts)]
+    # === TR: 우측 상단일 때 H 심볼 함수로 위치 구해서 -3, -4 적용 ===
+    if tr == 0 and tc == Wn - 1:
+        # 함수로 H의 실제 위치 구하기
+        h_pos = get_allied_turret_position()
+        if h_pos:
+            hr, hc = h_pos
+            candidates = []
+            # H의 실제 좌표에서 열(column)에 -3, -4 적용
+            for offset in (3, 4):
+                nr, nc = hr, hc - offset
+                if 0 <= nr < Hn and 0 <= nc < Wn and ok(nr, nc):
+                    candidates.append((nr, nc))
+
+            # 유효한 좌표가 있으면 사용
+            if len(candidates) >= 1:
+                return [("patrol_TR_H_offset", candidates)]
 
     # === 스페셜 불가 시 기존 차단 라인 폴백 ===
     defense_routes = []
@@ -960,8 +983,57 @@ def find_closest_enemy_to_turret():
     return min(ets, key=lambda e: abs(e[0]-tr) + abs(e[1]-tc))
 
 
+def vertical_step_towards(target):
+    """
+    같은 열(c)이면 위/아래로 한 칸만 이동/사격해서 목표 행(tr)에 다가간다.
+    다음 칸이 T면 그 방향으로 사격, G면 전진 (가로 이동 금지)
+    """
+    my_pos = get_my_position()
+    if not my_pos:
+        return None
+    r, c = my_pos
+    tr, tc = target
+    if c != tc:
+        return None
+
+    if tr > r:
+        d, nr, nc = 1, r + 1, c  # 아래
+    elif tr < r:
+        d, nr, nc = 3, r - 1, c  # 위
+    else:
+        return None
+
+    if not in_bounds(nr, nc) or is_forbidden_cell(nr, nc):
+        return None
+    if map_data[nr][nc] == 'T':
+        return S_CMD[d]
+    if map_data[nr][nc] == 'G':
+        return M_CMD[d]
+    return None
+
+
+def fallback_move_away_from_enemies():
+    """4방향 후보 중 적과의 최소거리 최대가 되는 G로 1칸 이동"""
+    my_pos = get_my_position()
+    if not my_pos:
+        return None
+    r, c = my_pos
+    best_i, best_score = None, -1
+    for i in range(4):  # 4방향 모두
+        dr, dc = DIRS[i]
+        nr, nc = r + dr, c + dc
+        if not in_bounds(nr, nc) or is_forbidden_cell(nr, nc):
+            continue
+        if map_data[nr][nc] != 'G':
+            continue
+        score = nearest_enemy_distance((nr, nc))
+        if score > best_score:
+            best_score, best_i = score, i
+    return M_CMD[best_i] if best_i is not None else None
+
+
 def decide_defense_action():
-    """방어 모드: 정찰(좌↔우) 우선, 경로 없으면 좌/우 폴백"""
+    """방어 모드: 수직 2점 왕복, 이동엔 안전가드 적용"""
     global current_route, route_position, route_direction
 
     my_pos = get_my_position()
@@ -979,55 +1051,57 @@ def decide_defense_action():
                 return S_MEGA_CMD[d]
             return S_CMD[d]
 
-    # 2) 정찰 루트(좌↔우) 준비
+    # 2) 정찰 루트 준비/동기화
     defense_routes = get_optimal_defense_positions()
     route_list_only = [route[1] for route in defense_routes]
     if not current_route or (current_route not in route_list_only and route_list_only):
         current_route = route_list_only[0] if route_list_only else None
-        route_position, route_direction = 0, 1
+        route_position = 0
+        route_direction = 1
 
-    # 3) 루트 이동(좌/우 우선)
+    # 3) 루트 이동 (수직 우선)
     if current_route:
         if my_pos in current_route and len(current_route) > 1:
             idx = current_route.index(my_pos)
-            nxt = idx + route_direction
-            if nxt >= len(current_route):
-                nxt = len(current_route) - 2
+            next_idx = idx + route_direction
+            if next_idx >= len(current_route):
+                next_idx = len(current_route) - 2
                 route_direction = -1
-            elif nxt < 0:
-                nxt = 1
+            elif next_idx < 0:
+                next_idx = 1
                 route_direction = 1
-            target = current_route[nxt]
+            target = current_route[next_idx]
         else:
             target = min(current_route, key=lambda p: distance(my_pos, p))
 
-        # 같은 행에서 좌/우로 접근
-        hs = horizontal_step_towards(target)
-        if hs:
-            if hs in M_CMD:
-                return apply_move_safety(hs)
-            return hs
+        vs = vertical_step_towards(target)
+        if vs:
+            if vs in S_CMD:
+                return vs
+            return apply_move_safety(vs)
 
-        hs2 = horizontal_step_towards_col(target[1])
-        if hs2:
-            if hs2 in M_CMD:
-                return apply_move_safety(hs2)
-            return hs2
-
-        # ▶ 경로 따라 내려가기(세로 이동 포함)
         path = dijkstra_to_specific(target)
         step = next_step_with_T_break(path)
         if step:
-            if step in M_CMD:
-                return apply_move_safety(step)
-            return step
+            if step in S_CMD:
+                return step
+            return apply_move_safety(step)
 
-        # 좌/우 폴백
-        fb = fallback_move_away_from_enemies_lr()
-        if fb:
-            if fb in M_CMD:
-                return apply_move_safety(fb)
-            return fb
+    # 4) 포탑에 가까운 적에게 사거리 확보 이동
+    ce = find_closest_enemy_to_turret()
+    if ce:
+        tr, tc, _ = ce
+        path = dijkstra_to_attack_position((tr, tc))
+        step = next_step_with_T_break(path)
+        if step:
+            if step in S_CMD:
+                return step
+            return apply_move_safety(step)
+
+    # 5) 폴백
+    fb = fallback_move_away_from_enemies()
+    if fb:
+        return apply_move_safety(fb)
 
     return "S"
 
@@ -1175,15 +1249,176 @@ def decide_supply_phase_action():
     return "S"
 
 
+##############################
+# 전진 모드 관련 함수들
+##############################
+
+def get_x_attack_positions():
+    """X를 일직선상 3칸 거리에서 공격할 수 있는 위치들 반환"""
+    x_pos = get_enemy_turret_position()
+    if not x_pos:
+        return []
+
+    Hn, Wn = get_map_size()
+    xr, xc = x_pos
+    positions = []
+
+    # X를 중심으로 4방향 일직선상 3칸 거리 위치
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 우, 하, 좌, 상
+
+    for dr, dc in directions:
+        # 1, 2, 3칸 거리의 위치들 모두 추가
+        for dist in [1, 2, 3]:
+            nr, nc = xr + dr * dist, xc + dc * dist
+            if in_bounds(nr, nc) and not is_forbidden_cell(nr, nc):
+                if terrain_cost(nr, nc) is not None:  # 이동 가능한 지형
+                    positions.append((nr, nc))
+
+    return positions
+
+
+def dijkstra_find_advance_target(min_enemy_distance):
+    """
+    적 탱크의 사정거리(3칸)를 피하면서 X의 일직선상 3칸 거리 위치 중 가장 가까운 곳을 다익스트라로 찾기
+    우선순위: 1) 적 탱크 사정거리(3칸) 밖 2) X 공격 가능 위치 3) 가장 가까운 거리
+    """
+    start = get_my_position()
+    if not start:
+        return []
+
+    # X의 일직선상 3칸 거리 위치들을 타겟으로 설정
+    x_attack_positions = get_x_attack_positions()
+    if not x_attack_positions:
+        return []
+
+    enemy_tanks = find_enemy_tanks()
+    if not enemy_tanks:
+        # 적이 없으면 가장 가까운 X 공격 위치로 이동
+        return dijkstra_to_positions(start, set(x_attack_positions))
+
+    # 1순위: 적 탱크의 사정거리(3칸) 밖에 있는 X 공격 위치들
+    safe_from_attack = []
+    for pos in x_attack_positions:
+        is_safe = True
+        for er, ec, _ in enemy_tanks:
+            if distance(pos, (er, ec)) <= 3:  # 적 탱크 사정거리 3칸
+                is_safe = False
+                break
+        if is_safe:
+            safe_from_attack.append(pos)
+
+    if safe_from_attack:
+        return dijkstra_to_positions(start, set(safe_from_attack))
+
+    # 2순위: 적들과 min_enemy_distance 이상 떨어진 X 공격 위치들
+    valid_targets = []
+    for pos in x_attack_positions:
+        min_dist_to_enemy = min(distance(pos, (er, ec)) for er, ec, _ in enemy_tanks)
+        if min_dist_to_enemy >= min_enemy_distance:
+            valid_targets.append(pos)
+
+    if valid_targets:
+        return dijkstra_to_positions(start, set(valid_targets))
+
+    # 3순위: 모든 X 공격 위치 중 가장 가까운 곳 (최후의 선택)
+    return dijkstra_to_positions(start, set(x_attack_positions))
+
+
+def is_at_advance_target(min_enemy_distance):
+    """현재 위치가 X의 일직선상 3칸 거리 위치이면서 적과 안전거리 확보했는지 확인"""
+    my_pos = get_my_position()
+    if not my_pos:
+        return False
+
+    # X의 일직선상 3칸 거리 위치들 중 하나인지 확인
+    x_attack_positions = get_x_attack_positions()
+    if my_pos not in x_attack_positions:
+        return False
+
+    # 모든 적과 min_enemy_distance 이상 떨어져 있는지 확인
+    enemy_tanks = find_enemy_tanks()
+    if not enemy_tanks:
+        return True
+
+    for er, ec, _ in enemy_tanks:
+        if distance(my_pos, (er, ec)) < min_enemy_distance:
+            return False
+
+    return True
+
+
+def decide_advance_action(min_enemy_distance):
+    """전진 모드 행동 결정"""
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    # 1) 사거리 내 적 사격 (적 탱크 우선)
+    for er, ec, etype in find_enemy_tanks():
+        ok, d = can_attack(my_pos, (er, ec))
+        if ok:
+            hp = get_enemy_hp(etype)
+            if hp is not None and hp <= 30:
+                return S_CMD[d]
+            if get_mega_bomb_count() > 0:
+                return S_MEGA_CMD[d]
+            return S_CMD[d]
+
+    # X(적 포탑) 사격 - X는 포격하지 않으므로 회피할 필요 없음
+    x_pos = get_enemy_turret_position()
+    if x_pos:
+        can_shoot_x, direction = can_attack(my_pos, x_pos)
+        if can_shoot_x:
+            if get_mega_bomb_count() > 0:
+                return S_MEGA_CMD[direction]
+            return S_CMD[direction]
+
+    # 2) 현재 위치가 목표 위치인지 확인
+    if is_at_advance_target(min_enemy_distance):
+        # 우리 타워(G) 방향으로 이동하거나 주변 나무 사격
+        turret_pos = get_allied_turret_position()
+        if turret_pos:
+            # 타워 방향으로 한 걸음 이동
+            path = dijkstra_to_specific(turret_pos)
+            step = next_step_with_T_break(path)
+            if step:
+                if step in M_CMD:
+                    return apply_move_safety(step)
+                return step
+
+        # 주변 나무 사격
+        shoot_tree = shoot_adjacent_T_if_any()
+        if shoot_tree:
+            return shoot_tree
+
+    # 3) 전진 목표 위치로 이동
+    path = dijkstra_find_advance_target(min_enemy_distance)
+    step = next_step_with_T_break(path)
+    if step:
+        if step in M_CMD:
+            return apply_move_safety(step)
+        return step
+
+    # 4) 폴백
+    fb = fallback_move_away_from_enemies_lr()
+    if fb:
+        if fb in M_CMD:
+            return apply_move_safety(fb)
+        return fb
+
+    return "S"
+
+
 ###################################
 # 알고리즘 함수/메서드 부분 구현 끝
 ###################################
 parse_data(game_data)
-turn_count = 0
 
 # 반복문: 메인 프로그램 <-> 클라이언트(이 코드) 간 동기 처리
 while game_data is not None:
-    print_data()
+    # 턴 수 증가
+    turn_count += 1
+
     # 턴 시작 시 안전정지 플래그 리셋
     safety_stop_used_this_turn = False
 
@@ -1196,10 +1431,28 @@ while game_data is not None:
     if mega_count >= 2:
         mega_bombs_acquired = True
 
+    # 거리 계산 (턴 60 이후에만)
+    x_to_all = 0
+    h_to_enu = 0
+    if turn_count >= 60:
+        x_to_all = calculate_x_to_all()
+        h_to_enu = calculate_h_to_enu()
+
     # (1) 보급 모드
     if (mega_count < 2) and (not mega_bombs_acquired):
         proposed = decide_supply_phase_action()
-    # (2) 방어 모드
+    # (2) 전진 모드 (턴 50 이상)
+    elif turn_count >= 40:
+        # 턴 80 이상: 거리 4
+        if turn_count >= 80 and x_to_all + 2 >= h_to_enu:
+            proposed = decide_advance_action(3)
+        # 턴 60 이상: 거리 5
+        elif turn_count >= 60 and x_to_all + 2 > h_to_enu:
+            proposed = decide_advance_action(4)
+        # 턴 40 이상: 거리 6
+        else:
+            proposed = decide_advance_action(6)
+    # (3) 방어 모드
     else:
         proposed = decide_defense_action()
 

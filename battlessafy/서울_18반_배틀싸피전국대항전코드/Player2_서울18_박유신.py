@@ -11,6 +11,7 @@ PORT = 8747
 ARGS = sys.argv[1] if len(sys.argv) > 1 else ''
 sock = socket.socket()
 
+
 ##############################
 # 메인 프로그램 통신 함수 정의
 ##############################
@@ -25,6 +26,7 @@ def init(nickname):
         print('[ERROR] Failed to connect. Please check if the main program is waiting for connection.')
         print(e)
 
+
 def submit(string_to_send):
     try:
         send_data = ARGS + string_to_send + ' '
@@ -33,6 +35,7 @@ def submit(string_to_send):
     except Exception as e:
         print('[ERROR] Failed to send data. Please check if connection to the main program is valid.')
     return None
+
 
 def receive():
     try:
@@ -44,6 +47,7 @@ def receive():
     except Exception as e:
         print('[ERROR] Failed to receive data. Please check if connection to the main program is valid.')
 
+
 def close():
     try:
         if sock is not None:
@@ -51,6 +55,7 @@ def close():
         print('[STATUS] Connection closed')
     except Exception as e:
         print('[ERROR] Network connection has been corrupted.')
+
 
 ##############################
 # 입력 데이터 변수 정의
@@ -63,10 +68,13 @@ codes = []
 ##############################
 # 전역 상태 (요청 반영)
 ##############################
-S_USAGE_COUNT = 0                    # 모든 "S" 누적 카운트 (총 2회까지만 의미 있게 사용)
-safety_stop_used_this_turn = False   # 이번 턴에 안전 때문에 S를 썼는지
-stop_counted_this_turn = False       # 이번 턴에 S_USAGE_COUNT를 이미 증가시켰는지
+S_USAGE_COUNT = 0  # 모든 "S" 누적 카운트 (총 2회까지만 의미 있게 사용)
+safety_stop_used_this_turn = False  # 이번 턴에 안전 때문에 S를 썼는지
+stop_counted_this_turn = False  # 이번 턴에 S_USAGE_COUNT를 이미 증가시켰는지
 mega_bombs_acquired = False
+
+# 턴 관리 전역변수
+turn_count = 0
 
 current_route = None
 route_position = 0
@@ -77,6 +85,7 @@ DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 우, 하, 좌, 상
 M_CMD = ["R A", "D A", "L A", "U A"]
 S_CMD = ["R F", "D F", "L F", "U F"]
 S_MEGA_CMD = ["R F M", "D F M", "L F M", "U F M"]
+
 
 ##############################
 # 파싱 / 기본 유틸
@@ -119,10 +128,12 @@ def parse_data(game_data):
     for i in range(row_index, row_index + num_of_codes):
         codes.append(game_data_rows[i])
 
+
 def get_map_size():
     if map_data and map_data[0]:
         return len(map_data), len(map_data[0])
     return (0, 0)
+
 
 def find_symbol(grid, symbol):
     if not grid or not grid[0]:
@@ -133,6 +144,7 @@ def find_symbol(grid, symbol):
             if grid[r][c] == symbol:
                 return (r, c)
     return None
+
 
 def find_all_symbols(symbol):
     if not map_data or not map_data[0]:
@@ -145,25 +157,80 @@ def find_all_symbols(symbol):
                 ret.append((r, c))
     return ret
 
+
 def get_my_position():
     return find_symbol(map_data, 'M')
 
+
 def get_allied_turret_position():
     return find_symbol(map_data, 'H')
+
+
+def find_all_allied_tanks():
+    """모든 아군 탱크 위치 찾기 (M, M2, M3 등)"""
+    H, W = get_map_size()
+    tanks = []
+    for r in range(H):
+        for c in range(W):
+            cell = map_data[r][c]
+            if cell == 'M' or (cell in my_allies and cell.startswith('M')):
+                tanks.append((r, c))
+    return tanks
+
 
 def get_mega_bomb_count():
     if 'M' in my_allies and len(my_allies['M']) >= 4:
         return int(my_allies['M'][3])
     return 0
 
+
 def distance(a, b):
     if not a or not b:
         return float('inf')
-    return abs(a[0]-b[0]) + abs(a[1]-b[1])
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
 
 def in_bounds(r, c):
     H, W = get_map_size()
     return 0 <= r < H and 0 <= c < W
+
+
+##############################
+# 새로운 거리 계산 함수들 (턴 60 이후에만 실행)
+##############################
+def calculate_x_to_ail():
+    """X로부터 모든 아군 탱크(M, M2, M3)의 거리 합"""
+    if turn_count < 60:
+        return 0
+
+    x_pos = find_symbol(map_data, 'X')
+    if not x_pos:
+        return 0
+
+    allied_tanks = find_all_allied_tanks()
+    total_distance = 0
+    for tank_pos in allied_tanks:
+        total_distance += distance(x_pos, tank_pos)
+
+    return total_distance
+
+
+def calculate_h_to_enu():
+    """H로부터 모든 적군 탱크(E1, E2, E3)의 거리 합"""
+    if turn_count < 60:
+        return 0
+
+    h_pos = get_allied_turret_position()
+    if not h_pos:
+        return 0
+
+    enemy_tanks = find_enemy_tanks()
+    total_distance = 0
+    for er, ec, _ in enemy_tanks:
+        total_distance += distance(h_pos, (er, ec))
+
+    return total_distance
+
 
 ##############################
 # 암호
@@ -178,22 +245,24 @@ def caesar_decode(ciphertext, shift):
             result += char
     return result
 
+
 def find_valid_caesar_decode(ciphertext):
     keywords = [
-        "YOUWILLNEVERKNOWUNTILYOUTRY","THEREISNOROYALROADTOLEARNING",
-        "BETTERLATETHANNEVER","THISTOOSHALLPASSAWAY","FAITHWITHOUTDEEDSISUSELESS",
-        "FORGIVENESSISBETTERTHANREVENGE","LIFEISNOTALLBEERANDSKITTLES","UNTILDEATHITISALLLIFE",
-        "WHATEVERYOUDOMAKEITPAY","TIMEISGOLD","THEONLYCUREFORGRIEFISACTION","GIVEMELIBERTYORGIVEMEDEATH",
-        "APOETISTHEPAINTEROFTHESOUL","BELIEVEINYOURSELF","NOSWEATNOSWEET","EARLYBIRDCATCHESTHEWORM",
-        "SEEINGISBELIEVING","ASKINGCOSTSNOTHING","GOODFENCESMAKESGOODNEIGHBORS","AROLLINGSTONEGATHERSNOMOSS",
-        "ONESUTMOSTMOVESTHEHEAVENS","LITTLEBYLITTLEDOESTHETRICK","LIVEASIFYOUWERETODIETOMORROW",
-        "LETBYGONESBEBYGONES","THEBEGINNINGISHALFOFTHEWHOLE","NOPAINNOGAIN","STEPBYSTEPGOESALONGWAY",
-        "THEDIFFICULTYINLIFEISTHECHOICE","LIFEISFULLOFUPSANDDOWNS","ROMEWASNOTBUILTINADAY",
-        "IFYOUCANTBEATTHEMJOINTHEM","NOTHINGVENTUREDNOTHINGGAINED","KNOWLEDGEINYOUTHISWISDOMINAGE",
-        "NOBEESNOHONEY","WHERETHEREISAWILLTHEREISAWAY","HABITISSECONDNATURE","SUTMOSTMOVESTHEHEAVENS",
-        "ONLY","ACTION","CUREFORGRIEFIS","SSAFY","BATTLE","ALGORITHM","TANK","MISSION","CODE","HERO","SEIZETHEDAY",
-        "LIFEITSELFISAQUOTATION","LIFEISVENTUREORNOTHING","DONTDREAMBEIT","TRYYOURBESTRATHERTHANBETHEBEST",
-        "WHATWILLBEWILLBE","DONTDWELLONTHEPAST","PASTISJUSTPAST","FOLLOWYOURHEART","LITTLEBYLITTLEDOESTHETRICK"
+        "YOUWILLNEVERKNOWUNTILYOUTRY", "THEREISNOROYALROADTOLEARNING",
+        "BETTERLATETHANNEVER", "THISTOOSHALLPASSAWAY", "FAITHWITHOUTDEEDSISUSELESS",
+        "FORGIVENESSISBETTERTHANREVENGE", "LIFEISNOTALLBEERANDSKITTLES", "UNTILDEATHITISALLLIFE",
+        "WHATEVERYOUDOMAKEITPAY", "TIMEISGOLD", "THEONLYCUREFORGRIEFISACTION", "GIVEMELIBERTYORGIVEMEDEATH",
+        "APOETISTHEPAINTEROFTHESOUL", "BELIEVEINYOURSELF", "NOSWEATNOSWEET", "EARLYBIRDCATCHESTHEWORM",
+        "SEEINGISBELIEVING", "ASKINGCOSTSNOTHING", "GOODFENCESMAKESGOODNEIGHBORS", "AROLLINGSTONEGATHERSNOMOSS",
+        "ONESUTMOSTMOVESTHEHEAVENS", "LITTLEBYLITTLEDOESTHETRICK", "LIVEASIFYOUWERETODIETOMORROW",
+        "LETBYGONESBEBYGONES", "THEBEGINNINGISHALFOFTHEWHOLE", "NOPAINNOGAIN", "STEPBYSTEPGOESALONGWAY",
+        "THEDIFFICULTYINLIFEISTHECHOICE", "LIFEISFULLOFUPSANDDOWNS", "ROMEWASNOTBUILTINADAY",
+        "IFYOUCANTBEATTHEMJOINTHEM", "NOTHINGVENTUREDNOTHINGGAINED", "KNOWLEDGEINYOUTHISWISDOMINAGE",
+        "NOBEESNOHONEY", "WHERETHEREISAWILLTHEREISAWAY", "HABITISSECONDNATURE", "SUTMOSTMOVESTHEHEAVENS",
+        "ONLY", "ACTION", "CUREFORGRIEFIS", "SSAFY", "BATTLE", "ALGORITHM", "TANK", "MISSION", "CODE", "HERO",
+        "SEIZETHEDAY",
+        "LIFEITSELFISAQUOTATION", "LIFEISVENTUREORNOTHING", "DONTDREAMBEIT", "TRYYOURBESTRATHERTHANBETHEBEST",
+        "WHATWILLBEWILLBE", "DONTDWELLONTHEPAST", "PASTISJUSTPAST", "FOLLOWYOURHEART", "LITTLEBYLITTLEDOESTHETRICK"
     ]
     for shift in range(26):
         decoded = caesar_decode(ciphertext, shift)
@@ -201,6 +270,7 @@ def find_valid_caesar_decode(ciphertext):
             if kw in decoded.upper():
                 return decoded
     return caesar_decode(ciphertext, 3)
+
 
 ##############################
 # Forbidden Zone
@@ -212,16 +282,18 @@ def get_forbidden_cells():
     if not turret:
         return forbidden
     tr, tc = turret
-    if tr == 0 and tc == W-1:
-        cand = [(0, W-2),(0, W-3),(1, W-1),(1, W-2),(1, W-3),(2, W-1),(2, W-2),(2, W-3)]
-        forbidden |= {(r,c) for (r,c) in cand if 0<=r<H and 0<=c<W}
-    if tr == H-1 and tc == 0:
-        cand = [(H-1,1),(H-1,2),(H-2,0),(H-2,1),(H-2,2),(H-3,0),(H-3,1),(H-3,2)]
-        forbidden |= {(r,c) for (r,c) in cand if 0<=r<H and 0<=c<W}
+    if tr == 0 and tc == W - 1:
+        cand = [(0, W - 2), (0, W - 3), (1, W - 1), (1, W - 2), (1, W - 3), (2, W - 1), (2, W - 2), (2, W - 3)]
+        forbidden |= {(r, c) for (r, c) in cand if 0 <= r < H and 0 <= c < W}
+    if tr == H - 1 and tc == 0:
+        cand = [(H - 1, 1), (H - 1, 2), (H - 2, 0), (H - 2, 1), (H - 2, 2), (H - 3, 0), (H - 3, 1), (H - 3, 2)]
+        forbidden |= {(r, c) for (r, c) in cand if 0 <= r < H and 0 <= c < W}
     return forbidden
 
-def is_forbidden_cell(r,c):
-    return (r,c) in get_forbidden_cells()
+
+def is_forbidden_cell(r, c):
+    return (r, c) in get_forbidden_cells()
+
 
 ##############################
 # 이동/경로 (다익스트라)
@@ -236,6 +308,7 @@ def terrain_cost(r, c):
         return None
     return None
 
+
 def terrain_cost_supply(r, c):
     if is_forbidden_cell(r, c):
         return None
@@ -245,6 +318,7 @@ def terrain_cost_supply(r, c):
     if cell == 'T':
         return 2
     return None
+
 
 def reconstruct_commands(prev, start, goal):
     path_dirs = []
@@ -256,10 +330,11 @@ def reconstruct_commands(prev, start, goal):
     path_dirs.reverse()
     return [M_CMD[d] for d in path_dirs]
 
+
 def dijkstra_to_positions_generic(start, targets, cost_fn):
     H, W = get_map_size()
-    INF = 10**9
-    dist = [[INF]*W for _ in range(H)]
+    INF = 10 ** 9
+    dist = [[INF] * W for _ in range(H)]
     prev = {}
     sr, sc = start
     dist[sr][sc] = 0
@@ -283,8 +358,10 @@ def dijkstra_to_positions_generic(start, targets, cost_fn):
                     heapq.heappush(pq, (ncost, nr, nc))
     return []
 
+
 def dijkstra_to_positions(start, targets):
     return dijkstra_to_positions_generic(start, targets, terrain_cost)
+
 
 def dijkstra_to_specific(target_pos):
     start = get_my_position()
@@ -293,6 +370,7 @@ def dijkstra_to_specific(target_pos):
     if is_forbidden_cell(*target_pos):
         return []
     return dijkstra_to_positions(start, {target_pos})
+
 
 def dijkstra_to_first_adjacent_of(symbol):
     start = get_my_position()
@@ -305,12 +383,13 @@ def dijkstra_to_first_adjacent_of(symbol):
             if terrain_cost(r, c) is None:
                 continue
             for dr, dc in DIRS:
-                nr, nc = r+dr, c+dc
+                nr, nc = r + dr, c + dc
                 if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == symbol:
                     if not is_forbidden_cell(r, c):
                         targets.add((r, c))
                     break
     return dijkstra_to_positions(start, targets)
+
 
 def dijkstra_to_first_adjacent_of_supply(symbol):
     start = get_my_position()
@@ -323,12 +402,95 @@ def dijkstra_to_first_adjacent_of_supply(symbol):
             if terrain_cost_supply(r, c) is None:
                 continue
             for dr, dc in DIRS:
-                nr, nc = r+dr, c+dc
+                nr, nc = r + dr, c + dc
                 if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == symbol:
                     if not is_forbidden_cell(r, c):
                         targets.add((r, c))
                     break
     return dijkstra_to_positions_generic(start, targets, terrain_cost_supply)
+
+
+##############################
+# 고급 전진 타겟 찾기
+##############################
+def get_x_attack_positions():
+    """X를 일직선상 3칸 거리에서 공격할 수 있는 위치들 반환"""
+    x_pos = find_symbol(map_data, 'X')
+    if not x_pos:
+        return []
+
+    H, W = get_map_size()
+    xr, xc = x_pos
+    positions = []
+
+    # X를 중심으로 4방향 일직선상 3칸 거리 위치
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 우, 하, 좌, 상
+
+    for dr, dc in directions:
+        # 1, 2, 3칸 거리의 위치들 모두 추가
+        for dist in [1, 2, 3]:
+            nr, nc = xr + dr * dist, xc + dc * dist
+            if in_bounds(nr, nc) and not is_forbidden_cell(nr, nc):
+                if terrain_cost_supply(nr, nc) is not None:  # 이동 가능한 지형
+                    positions.append((nr, nc))
+
+    return positions
+
+
+def find_advance_target_with_min_distance(min_enemy_dist):
+    """
+    적 탱크의 사정거리(3칸)를 피하면서 X의 일직선상 3칸 거리 위치 찾기
+    우선순위: 1) 적 탱크 사정거리(3칸) 밖 2) X 공격 가능 위치 3) 가장 가까운 거리
+    """
+    # X의 일직선상 3칸 거리 위치들을 타겟으로 설정
+    x_attack_positions = get_x_attack_positions()
+    if not x_attack_positions:
+        return None
+
+    my_pos = get_my_position()
+    if not my_pos:
+        return None
+
+    enemy_tanks = find_enemy_tanks()
+    if not enemy_tanks:
+        # 적이 없으면 가장 가까운 X 공격 위치 반환
+        return min(x_attack_positions, key=lambda pos: distance(my_pos, pos))
+
+    # 1순위: 적 탱크의 사정거리(3칸) 밖에 있는 X 공격 위치들
+    safe_from_attack = []
+    for pos in x_attack_positions:
+        is_safe = True
+        for er, ec, _ in enemy_tanks:
+            if distance(pos, (er, ec)) <= 3:  # 적 탱크 사정거리 3칸
+                is_safe = False
+                break
+        if is_safe:
+            safe_from_attack.append(pos)
+
+    if safe_from_attack:
+        return min(safe_from_attack, key=lambda pos: distance(my_pos, pos))
+
+    # 2순위: 적들과 min_enemy_dist 이상 떨어진 X 공격 위치들
+    valid_targets = []
+    for pos in x_attack_positions:
+        min_dist_to_enemy = min(distance(pos, (er, ec)) for er, ec, _ in enemy_tanks)
+        if min_dist_to_enemy >= min_enemy_dist:
+            valid_targets.append(pos)
+
+    if valid_targets:
+        return min(valid_targets, key=lambda pos: distance(my_pos, pos))
+
+    # 3순위: 모든 X 공격 위치 중 가장 가까운 곳 (최후의 선택)
+    return min(x_attack_positions, key=lambda pos: distance(my_pos, pos))
+
+
+def dijkstra_to_advance_target(target_pos):
+    """전진 타겟으로 가는 경로 (T를 부수면서)"""
+    start = get_my_position()
+    if not start or not target_pos:
+        return []
+    return dijkstra_to_positions_generic(start, {target_pos}, terrain_cost_supply)
+
 
 ##############################
 # 전투/표적
@@ -338,18 +500,20 @@ def find_enemy_tanks():
     out = []
     for r in range(H):
         for c in range(W):
-            if map_data[r][c] in ['E1','E2','E3']:
-                out.append((r,c,map_data[r][c]))
+            if map_data[r][c] in ['E1', 'E2', 'E3']:
+                out.append((r, c, map_data[r][c]))
     return out
+
 
 def find_all_enemies():
     H, W = get_map_size()
     out = []
     for r in range(H):
         for c in range(W):
-            if map_data[r][c] in ['E1','E2','E3','X']:
-                out.append((r,c,map_data[r][c]))
+            if map_data[r][c] in ['E1', 'E2', 'E3', 'X']:
+                out.append((r, c, map_data[r][c]))
     return out
+
 
 def can_attack(from_pos, to_pos):
     if not from_pos or not to_pos:
@@ -358,31 +522,32 @@ def can_attack(from_pos, to_pos):
     tr, tc = to_pos
     if fr == tr:
         if fc < tc:
-            for c in range(fc+1, tc):
-                if map_data[fr][c] not in ['G','S','W']:
+            for c in range(fc + 1, tc):
+                if map_data[fr][c] not in ['G', 'S', 'W']:
                     return False, -1
-            if abs(tc-fc) <= 3:
+            if abs(tc - fc) <= 3:
                 return True, 0
         else:
-            for c in range(tc+1, fc):
-                if map_data[fr][c] not in ['G','S','W']:
+            for c in range(tc + 1, fc):
+                if map_data[fr][c] not in ['G', 'S', 'W']:
                     return False, -1
-            if abs(fc-tc) <= 3:
+            if abs(fc - tc) <= 3:
                 return True, 2
     elif fc == tc:
         if fr < tr:
-            for r in range(fr+1, tr):
-                if map_data[r][fc] not in ['G','S','W']:
+            for r in range(fr + 1, tr):
+                if map_data[r][fc] not in ['G', 'S', 'W']:
                     return False, -1
-            if abs(tr-fr) <= 3:
+            if abs(tr - fr) <= 3:
                 return True, 1
         else:
-            for r in range(tr+1, fr):
-                if map_data[r][fc] not in ['G','S','W']:
+            for r in range(tr + 1, fr):
+                if map_data[r][fc] not in ['G', 'S', 'W']:
                     return False, -1
-            if abs(fr-tr) <= 3:
+            if abs(fr - tr) <= 3:
                 return True, 3
     return False, -1
+
 
 def get_enemy_hp(enemy_code):
     try:
@@ -392,6 +557,7 @@ def get_enemy_hp(enemy_code):
         pass
     return None
 
+
 ##############################
 # 아군/차폐/라인 판정 (요청 핵심)
 ##############################
@@ -399,6 +565,7 @@ def is_allied_tank_cell(cell_val):
     if cell_val in ('', 'G', 'S', 'W', 'T', 'F', 'H', 'M', 'E1', 'E2', 'E3', 'X'):
         return False
     return cell_val in my_allies and cell_val not in ('M', 'H')
+
 
 def find_allied_tanks_positions():
     H, W = get_map_size()
@@ -408,6 +575,7 @@ def find_allied_tanks_positions():
             if is_allied_tank_cell(map_data[r][c]):
                 out.append((r, c))
     return out
+
 
 def cells_between_on_line(a, b):
     (r1, c1), (r2, c2) = a, b
@@ -422,6 +590,7 @@ def cells_between_on_line(a, b):
             cells.append((r, c1))
     return cells
 
+
 def move_blocks_ally_fire(next_pos):
     """내가 next_pos로 이동하면 아군→적의 사격 라인을 가로막는가?"""
     allies = find_allied_tanks_positions()
@@ -435,15 +604,18 @@ def move_blocks_ally_fire(next_pos):
                 return True
     return False
 
+
 def enemies_threat_detail(pos):
     """
-    pos가 적의 사격경로 안인가?
+    pos가 적의 사격경로 안인가? (X 제외 - X는 포격하지 않음)
       - blocked_by_ally: 그 경로상에 '다른 아군 탱크'가 있는가
       - enemy_hits_turret: 그 적이 우리 타워(H)를 때릴 수 있는 위치인가
     """
     allies_set = set(find_allied_tanks_positions())
     turret = get_allied_turret_position()
-    for er, ec, _ in find_all_enemies():
+    for er, ec, etype in find_all_enemies():
+        if etype == 'X':  # X는 포격하지 않으므로 위협으로 간주하지 않음
+            continue
         ok, _dir = can_attack((er, ec), pos)
         if not ok:
             continue
@@ -455,6 +627,7 @@ def enemies_threat_detail(pos):
         return True, blocked_by_ally, enemy_hits_turret
     return False, False, False
 
+
 ##############################
 # 안전 가드 + S 집계/대안
 ##############################
@@ -463,6 +636,7 @@ def cmd_to_dir(cmd):
         if cmd == m:
             return i
     return None
+
 
 def shoot_adjacent_T_if_any():
     """인접 T 우선 사격"""
@@ -475,6 +649,7 @@ def shoot_adjacent_T_if_any():
         if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'T':
             return S_CMD[i]
     return None
+
 
 def safe_G_move_if_any():
     """적 사격경로(차폐 없는) 아닌 인접 G로 이동"""
@@ -495,6 +670,36 @@ def safe_G_move_if_any():
             return M_CMD[i]
     return None
 
+
+def move_towards_turret():
+    """타워 방향으로 이동"""
+    my_pos = get_my_position()
+    turret = get_allied_turret_position()
+    if not my_pos or not turret:
+        return None
+
+    mr, mc = my_pos
+    tr, tc = turret
+
+    # 타워에 가까워지는 방향 찾기
+    best_move = None
+    best_distance = distance(my_pos, turret)
+
+    for i, (dr, dc) in enumerate(DIRS):
+        nr, nc = mr + dr, mc + dc
+        if not in_bounds(nr, nc) or is_forbidden_cell(nr, nc):
+            continue
+        if map_data[nr][nc] != 'G':
+            continue
+
+        new_dist = distance((nr, nc), turret)
+        if new_dist < best_distance:
+            best_distance = new_dist
+            best_move = M_CMD[i]
+
+    return best_move
+
+
 def track_stop_and_return_S():
     """S 사용 시도(총 2회, 턴당 1회). 불가하면 None."""
     global S_USAGE_COUNT, safety_stop_used_this_turn, stop_counted_this_turn
@@ -505,6 +710,7 @@ def track_stop_and_return_S():
     stop_counted_this_turn = True
     return "S"
 
+
 def choose_shoot_T_or_safe_move(fallback_target=None):
     """S가 더 못 쓰일 때: 1순위 T 파괴 → 2순위 안전 G 이동"""
     shoot = shoot_adjacent_T_if_any()
@@ -514,6 +720,7 @@ def choose_shoot_T_or_safe_move(fallback_target=None):
     if safe:
         return safe
     return None
+
 
 def apply_safety_guard(action, fallback_target=None):
     """
@@ -565,6 +772,7 @@ def apply_safety_guard(action, fallback_target=None):
     # 위협 없음 → 이동
     return action
 
+
 ##############################
 # 보급/해독
 ##############################
@@ -575,16 +783,18 @@ def is_adjacent_to_supply():
     H, W = get_map_size()
     r, c = my_pos
     for dr, dc in DIRS:
-        nr, nc = r+dr, c+dc
+        nr, nc = r + dr, c + dc
         if 0 <= nr < H and 0 <= nc < W and map_data[nr][nc] == 'F':
             return True
     return False
+
 
 def nearest_distance_to_targets(pos, targets):
     if not targets:
         return float('inf')
     pr, pc = pos
     return min(abs(pr - tr) + abs(pc - tc) for (tr, tc) in targets)
+
 
 def fallback_move_adjacent_G_towards_target(target_pos):
     my_pos = get_my_position()
@@ -606,6 +816,7 @@ def fallback_move_adjacent_G_towards_target(target_pos):
     if best is not None:
         return M_CMD[best]
     return None
+
 
 def fallback_move_adjacent_G_towards_F():
     my_pos = get_my_position()
@@ -629,6 +840,7 @@ def fallback_move_adjacent_G_towards_F():
         return M_CMD[best]
     return None
 
+
 def find_closest_supply_to_base():
     base = get_allied_turret_position()
     if not base:
@@ -637,6 +849,7 @@ def find_closest_supply_to_base():
     if not Fs:
         return None
     return min(Fs, key=lambda p: distance(base, p))
+
 
 def dijkstra_to_adjacent_of_specific_supply(f_pos):
     start = get_my_position()
@@ -657,6 +870,7 @@ def dijkstra_to_adjacent_of_specific_supply(f_pos):
         return []
     return dijkstra_to_positions_generic(start, targets, terrain_cost_supply)
 
+
 ##############################
 # 웨이포인트 (part3 정찰)
 ##############################
@@ -666,11 +880,12 @@ def get_corner():
         return None
     H, W = get_map_size()
     tr, tc = t
-    if tr == 0 and tc == W-1:
+    if tr == 0 and tc == W - 1:
         return "TR"
-    if tr == H-1 and tc == 0:
+    if tr == H - 1 and tc == 0:
         return "BL"
     return None
+
 
 def is_good_stand_cell(r, c):
     if not in_bounds(r, c):
@@ -679,8 +894,10 @@ def is_good_stand_cell(r, c):
         return False
     return map_data[r][c] == 'G'
 
+
 def clamp_waypoints(pts):
-    return [(r,c) for (r,c) in pts if is_good_stand_cell(r,c)]
+    return [(r, c) for (r, c) in pts if is_good_stand_cell(r, c)]
+
 
 def build_part3_waypoints():
     corner = get_corner()
@@ -688,16 +905,152 @@ def build_part3_waypoints():
         return []
     H, W = get_map_size()
     if corner == "BL":
-        raw = [(H-4,2),(H-4,3),(H-3,3)]
+        raw = [(H - 4, 2), (H - 4, 3), (H - 3, 3)]
     else:  # TR
-        raw = [(2, W-4),(3, W-4),(3, W-3)]
+        raw = [(2, W - 4), (3, W - 4), (3, W - 3)]
     wps = clamp_waypoints(raw)
     if len(wps) < 3:
         wps = []
         for r, c in raw:
-            if in_bounds(r,c) and not is_forbidden_cell(r,c) and map_data[r][c] != 'T':
-                wps.append((r,c))
+            if in_bounds(r, c) and not is_forbidden_cell(r, c) and map_data[r][c] != 'T':
+                wps.append((r, c))
     return wps[:3]
+
+
+##############################
+# 고급 전진 로직
+##############################
+def is_at_target_position(target_pos, min_enemy_dist):
+    """현재 위치가 X의 일직선상 3칸 거리 위치이면서 적과 안전거리 확보했는지 확인"""
+    my_pos = get_my_position()
+    if not my_pos:
+        return False
+
+    # X의 일직선상 3칸 거리 위치들 중 하나인지 확인
+    x_attack_positions = get_x_attack_positions()
+    if my_pos not in x_attack_positions:
+        return False
+
+    # 모든 적과 min_enemy_dist 이상 떨어져 있는지 확인
+    enemy_tanks = find_enemy_tanks()
+    if not enemy_tanks:
+        return True
+
+    min_dist_to_enemy = min(distance(my_pos, (er, ec)) for er, ec, _ in enemy_tanks)
+    return min_dist_to_enemy >= min_enemy_dist
+
+
+def decide_advance_action(min_enemy_dist):
+    """전진 모드 액션 결정"""
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    # 1) 사격 우선 (적 탱크 우선)
+    for er, ec, et in find_enemy_tanks():
+        ok, d = can_attack(my_pos, (er, ec))
+        if ok:
+            hp = get_enemy_hp(et)
+            if hp is not None and hp <= 30:
+                return S_CMD[d]
+            if get_mega_bomb_count() > 0:
+                return S_MEGA_CMD[d]
+            return S_CMD[d]
+
+    # X(적 포탑) 사격 - X는 포격하지 않으므로 회피할 필요 없음
+    x_pos = find_symbol(map_data, 'X')
+    if x_pos:
+        can_shoot_x, direction = can_attack(my_pos, x_pos)
+        if can_shoot_x:
+            if get_mega_bomb_count() > 0:
+                return S_MEGA_CMD[direction]
+            return S_CMD[direction]
+
+    # 2) 전진 타겟 찾기
+    target_pos = find_advance_target_with_min_distance(min_enemy_dist)
+    if not target_pos:
+        # 타겟을 찾을 수 없으면 기존 정찰 로직으로 fallback
+        return decide_patrol_action()
+
+    # 3) 현재 위치가 이미 조건을 만족하는지 확인
+    if is_at_target_position(target_pos, min_enemy_dist):
+        # 타워 방향 이동 시도
+        tower_move = move_towards_turret()
+        if tower_move:
+            return apply_safety_guard(tower_move, fallback_target=get_allied_turret_position())
+
+        # 주변 T 사격
+        tree_shoot = shoot_adjacent_T_if_any()
+        if tree_shoot:
+            return tree_shoot
+
+        # 안전한 G 이동
+        safe_move = safe_G_move_if_any()
+        if safe_move:
+            return apply_safety_guard(safe_move, fallback_target=target_pos)
+
+        return "S"
+
+    # 4) 타겟으로 전진
+    path = dijkstra_to_advance_target(target_pos)
+    if path:
+        first_cmd = path[0]
+        d = cmd_to_dir(first_cmd)
+        if d is not None:
+            mr, mc = my_pos
+            dr, dc = DIRS[d]
+            nr, nc = mr + dr, mc + dc
+            if in_bounds(nr, nc) and map_data[nr][nc] == 'T':
+                return S_CMD[d]  # T는 부수고
+            if in_bounds(nr, nc) and map_data[nr][nc] == 'G':
+                return apply_safety_guard(first_cmd, fallback_target=target_pos)
+
+    # 5) 경로가 없으면 목표 방향으로 인접 G 이동
+    fb_move = fallback_move_adjacent_G_towards_target(target_pos)
+    if fb_move:
+        return apply_safety_guard(fb_move, fallback_target=target_pos)
+
+    return "S"
+
+
+def decide_patrol_action():
+    """기존 정찰 로직"""
+    global route_position, route_direction, current_route
+
+    my_pos = get_my_position()
+    if not my_pos:
+        return "S"
+
+    # part3 웨이포인트 순찰
+    wps = build_part3_waypoints()
+    if wps:
+        if my_pos in wps:
+            route_position = wps.index(my_pos)
+        if route_direction not in (1, -1):
+            route_direction = 1
+        next_idx = route_position + route_direction
+        if next_idx >= len(wps):
+            next_idx = len(wps) - 2 if len(wps) >= 2 else 0
+            route_direction = -1
+        elif next_idx < 0:
+            next_idx = 1 if len(wps) >= 2 else 0
+            route_direction = 1
+        target = wps[next_idx] if my_pos in wps else min(wps, key=lambda p: distance(my_pos, p))
+        path = dijkstra_to_specific(target)
+        if path:
+            return apply_safety_guard(path[0], fallback_target=target)
+
+    # 포탑 근처 한 칸(최소 방어)
+    t = get_allied_turret_position()
+    if t:
+        mr, mc = my_pos
+        for i, (dr, dc) in enumerate(DIRS):
+            nr, nc = mr + dr, mc + dc
+            if in_bounds(nr, nc) and is_good_stand_cell(nr, nc):
+                return apply_safety_guard(M_CMD[i], fallback_target=t)
+
+    return "S"
+
 
 ##############################
 # 의사결정
@@ -755,9 +1108,8 @@ def decide_supply_phase_action():
         return apply_safety_guard(fb)
     return "S"
 
-def decide_defense_action():
-    global route_position, route_direction, current_route
 
+def decide_defense_action():
     my_pos = get_my_position()
     if not my_pos:
         return "S"
@@ -773,35 +1125,28 @@ def decide_defense_action():
                 return S_MEGA_CMD[d]
             return S_CMD[d]
 
-    # 2) part3 웨이포인트 순찰
-    wps = build_part3_waypoints()
-    if wps:
-        if my_pos in wps:
-            route_position = wps.index(my_pos)
-        if route_direction not in (1, -1):
-            route_direction = 1
-        next_idx = route_position + route_direction
-        if next_idx >= len(wps):
-            next_idx = len(wps)-2 if len(wps) >= 2 else 0
-            route_direction = -1
-        elif next_idx < 0:
-            next_idx = 1 if len(wps) >= 2 else 0
-            route_direction = 1
-        target = wps[next_idx] if my_pos in wps else min(wps, key=lambda p: distance(my_pos, p))
-        path = dijkstra_to_specific(target)
-        if path:
-            return apply_safety_guard(path[0], fallback_target=target)
+    # 2) 턴 기반 전략 분기
+    if turn_count >= 40:
+        # 턴 40 이상: 전진 모드
+        if turn_count >= 80:
+            # 턴 80 이상: 거리 차이에 따른 공격적 전진
+            x_to_ail = calculate_x_to_ail()
+            h_to_enu = calculate_h_to_enu()
+            if x_to_ail + 2 >= h_to_enu:
+                return decide_advance_action(3)  # 거리 3
+        elif turn_count >= 60:
+            # 턴 60 이상: 거리 차이에 따른 전진
+            x_to_ail = calculate_x_to_ail()
+            h_to_enu = calculate_h_to_enu()
+            if x_to_ail + 2 >= h_to_enu:
+                return decide_advance_action(4)  # 거리 4
 
-    # 3) 포탑 근처 한 칸(최소 방어)
-    t = get_allied_turret_position()
-    if t:
-        mr, mc = my_pos
-        for i, (dr, dc) in enumerate(DIRS):
-            nr, nc = mr+dr, mc+dc
-            if in_bounds(nr, nc) and is_good_stand_cell(nr, nc):
-                return apply_safety_guard(M_CMD[i], fallback_target=t)
+        # 기본 전진 (턴 40+)
+        return decide_advance_action(6)  # 거리 6
+    else:
+        # 턴 40 미만: 기존 정찰 로직
+        return decide_patrol_action()
 
-    return "S"
 
 ##############################
 # 턴 제어/집계 보조
@@ -811,6 +1156,7 @@ def reset_turn_flags():
     safety_stop_used_this_turn = False
     stop_counted_this_turn = False
 
+
 def finalize_stop_count(cmd):
     """이번 턴 최종 명령이 'S'이고 아직 반영 안했으면 카운트(단, 총 2회 한정)."""
     global S_USAGE_COUNT, stop_counted_this_turn
@@ -818,13 +1164,13 @@ def finalize_stop_count(cmd):
         S_USAGE_COUNT += 1
         stop_counted_this_turn = True
 
+
 ##############################
 # 메인 루프
 ##############################
 if __name__ == "__main__":
     NICKNAME = '서울18_박유신'  # 원하는 닉네임
     game_data = init(NICKNAME)
-    turn_count = 0
 
     while game_data is not None:
         parse_data(game_data)
