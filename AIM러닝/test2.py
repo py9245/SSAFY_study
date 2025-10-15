@@ -32,7 +32,7 @@ raw = (
 
 # (선택) 특수 규칙: 공부 7h+ & 휴식 1h 이하면 소폭 감점
 mask = (study_time >= 7) & (rest_time <= 1)
-raw[mask] -= np.random.uniform(2, 4, mask.sum())
+raw[mask] -= np.random.uniform(0, 0.001, mask.sum())
 
 # 4) 두 점으로 선형 보정 (alpha, beta)
 #    - 앵커: (8,2,8) → 100
@@ -60,7 +60,7 @@ data = pd.DataFrame({
     "condition": condition,
     "score": score
 })
-# data.to_csv("study_data.csv", index=False, encoding="utf-8-sig")
+data.to_csv("study_data.csv", index=False, encoding="utf-8-sig")
 
 # 7) 시각화: 휴식시간별 FacetGrid
 sns.set(style="whitegrid", font="Malgun Gothic", context="talk")

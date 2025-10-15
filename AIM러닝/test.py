@@ -1,65 +1,140 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import PolynomialFeatures
+import itertools
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.metrics import mean_squared_error
+from mpl_toolkits.mplot3d import Axes3D
 
+# ----------------------------
+# 1. 데이터 로드
+# ----------------------------
 df = pd.read_csv("study_data.csv", encoding="utf-8-sig")
-
-print(df.head())
 
 np.random.seed(24)
 
 x = df.iloc[:, :-1].to_numpy(copy=False)
 y = df.iloc[:, -1].to_numpy(copy=False)
-x = np.c_[np.ones(x.shape[0]), x]
-beta_1 = np.linalg.pinv(x.T @ x) @ x.T @ y
 
+# ----------------------------
+# 2. PolynomialFeatures 생성
+# ----------------------------
+poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
+x_poly = poly.fit_transform(x)
+feature_names = poly.get_feature_names_out(df.columns[:-1])
 
-test_data = [1, 8, 2, 8]
-test_data_2 = [1, 1.5973902572668779,4,1.2831604303925488]
+# ----------------------------
+# 3. 스케일링
+# ----------------------------
+scaler = StandardScaler()
+x_scaled = scaler.fit_transform(x_poly)
 
-# 기대했던 값과 비슷 경사 하강법 적용 후 검증해보겠음
+# ----------------------------
+# 4. 경사하강법 함수
+# ----------------------------
+def gradient_descent(X, y, lr=0.003, epochs=20000):
+    X = np.c_[np.ones(X.shape[0]), X]
+    beta = np.zeros(X.shape[1])
+    for _ in range(epochs):
+        y_pred = X @ beta
+        error = y_pred - y
+        grad = (1 / len(y)) * (X.T @ error)
+        beta -= lr * grad
+    mse = mean_squared_error(y, y_pred)
+    return beta, mse, y_pred
 
+# ----------------------------
+# 5. 모든 조합 전수 탐색
+# ----------------------------
+best_combo = None
+best_mse = float("inf")
+results = []
 
-lr = 0.007
-epochs = 25000
-beta = np.zeros(x.shape[1])
-history = []
+for r in range(1, len(feature_names) + 1):
+    for subset in itertools.combinations(range(len(feature_names)), r):
+        X_sub = x_scaled[:, subset]
+        beta, mse, _ = gradient_descent(X_sub, y)
+        results.append((subset, mse))
+        if mse < best_mse:
+            best_mse = mse
+            best_combo = subset
 
-for i in range(epochs):
-    y_pred = x @ beta
-    error = y_pred - y
-    grad = (1/len(y)) * (x.T @ error)
-    beta -= lr * grad
+best_features = [feature_names[i] for i in best_combo]
+print("\n✅ 최적 피처 조합:", best_features)
+print("최소 MSE:", best_mse)
 
-    if i % 1000 == 0:
-        mse = np.mean(error ** 2)
-        history.append((i, mse, *beta))
-print("beta:", beta)
+# ----------------------------
+# 6. 최적 조합으로 모델 학습
+# ----------------------------
+X_best = x_scaled[:, best_combo]
+beta_best, mse_best, y_pred_best = gradient_descent(X_best, y)
 
-# 오차 기록 그래프
-epochs_list = [h[0] for h in history]
-mse_list = [h[1] for h in history]
+# ----------------------------
+# 7. 3D 곡면 시각화
+# ----------------------------
+# 공부시간(study_time)과 컨디션(condition)을 격자로 만들고
+# rest_time은 평균값으로 고정
+study_range = np.linspace(df['study_time'].min(), df['study_time'].max(), 50)
+cond_range = np.linspace(df['condition'].min(), df['condition'].max(), 50)
+rest_mean = df['rest_time'].mean()
 
-plt.plot(epochs_list, mse_list, marker='o')
-plt.title("MSE 감소 그래프 (Gradient Descent)")
-plt.xlabel("Epoch")
-plt.ylabel("Mean Squared Error")
+S, C = np.meshgrid(study_range, cond_range)
+R = np.full_like(S, rest_mean)
+
+grid = np.stack([S.ravel(), R.ravel(), C.ravel()], axis=1)
+
+# 같은 변환 적용
+grid_poly = poly.transform(grid)
+grid_poly_scaled = scaler.transform(grid_poly)
+grid_best = grid_poly_scaled[:, best_combo]
+grid_best = np.c_[np.ones(grid_best.shape[0]), grid_best]
+
+Z = grid_best @ beta_best
+Z = Z.reshape(S.shape)
+
+# ----------------------------
+# 8. 실제 데이터 + 예측 곡면 출력
+# ----------------------------
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+
+# 실제 데이터 점
+ax.scatter(df['study_time'], df['condition'], y, color='blue', alpha=0.3, label='실제값')
+
+# 예측 곡면
+ax.plot_surface(S, C, Z, cmap='viridis', alpha=0.7)
+
+ax.set_title(f"3D 예측 곡면 (최적 조합: {', '.join(best_features)})")
+ax.set_xlabel("공부시간 (study_time)")
+ax.set_ylabel("컨디션 (condition)")
+ax.set_zlabel("예측 점수 (score)")
+ax.legend()
 plt.show()
 
+import matplotlib.pyplot as plt
+import numpy as np
 
-# 이건 정규 방정식 세타
-test_data = [1, 8, 2, 8]
-test_data_2 = [1, 2.9308947463495336, 4, 3.1036509383708584]
+# ----------------------------
+# 🔹 잔차 계산
+# ----------------------------
+X_best = x_scaled[:, best_combo]
+_, _, y_pred_best = gradient_descent(X_best, y)
+residuals = y - y_pred_best
 
-print("정규 방정식 예측값:", beta_1 @ test_data)
-print("정규 방정식 예측값_2:", beta_1 @ test_data_2)
+# ----------------------------
+# 🔹 hexbin 기반 잔차 분포
+# ----------------------------
+feature_cols = df.columns[:-1]
 
-# 경사 하강법 구한 세타
-pred1 = np.dot(beta, test_data)
-pred2 = np.dot(beta, test_data_2)
+fig, axes = plt.subplots(1, len(feature_cols), figsize=(15, 4))
 
-print("경사 하강법 예측값:", pred1)
-print("경사 하강법 예측값_2:", pred2)
+for i, col in enumerate(feature_cols):
+    axes[i].hexbin(df[col], residuals, gridsize=60, cmap='viridis', mincnt=1)
+    axes[i].axhline(0, color='red', linestyle='--', linewidth=1)
+    axes[i].set_title(f"{col} vs Residuals (density)")
+    axes[i].set_xlabel(col)
+    axes[i].set_ylabel("잔차 (y - ŷ)")
 
-
+plt.suptitle("피처별 잔차 분포 (Hexbin: 색상은 데이터 밀도)", fontsize=14)
+plt.tight_layout()
+plt.show()
