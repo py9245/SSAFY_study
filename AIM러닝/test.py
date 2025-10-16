@@ -32,7 +32,7 @@ x_scaled = scaler.fit_transform(x_poly)
 # ----------------------------
 # 4. 경사하강법 함수
 # ----------------------------
-def gradient_descent(X, y, lr=0.003, epochs=20000):
+def gradient_descent(X, y, lr=0.007, epochs=7000):
     X = np.c_[np.ones(X.shape[0]), X]
     beta = np.zeros(X.shape[1])
     for _ in range(epochs):
@@ -109,32 +109,4 @@ ax.set_xlabel("공부시간 (study_time)")
 ax.set_ylabel("컨디션 (condition)")
 ax.set_zlabel("예측 점수 (score)")
 ax.legend()
-plt.show()
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-# ----------------------------
-# 🔹 잔차 계산
-# ----------------------------
-X_best = x_scaled[:, best_combo]
-_, _, y_pred_best = gradient_descent(X_best, y)
-residuals = y - y_pred_best
-
-# ----------------------------
-# 🔹 hexbin 기반 잔차 분포
-# ----------------------------
-feature_cols = df.columns[:-1]
-
-fig, axes = plt.subplots(1, len(feature_cols), figsize=(15, 4))
-
-for i, col in enumerate(feature_cols):
-    axes[i].hexbin(df[col], residuals, gridsize=60, cmap='viridis', mincnt=1)
-    axes[i].axhline(0, color='red', linestyle='--', linewidth=1)
-    axes[i].set_title(f"{col} vs Residuals (density)")
-    axes[i].set_xlabel(col)
-    axes[i].set_ylabel("잔차 (y - ŷ)")
-
-plt.suptitle("피처별 잔차 분포 (Hexbin: 색상은 데이터 밀도)", fontsize=14)
-plt.tight_layout()
 plt.show()
