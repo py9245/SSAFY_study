@@ -1,0 +1,6 @@
+{
+  "type": "weighted_mean",
+  "weights": {
+    "lgbm": 1.0
+  }
+}
