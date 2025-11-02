@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang='ko'>
+<head>
+<meta charset='utf-8'>
+<title>모의고사 4 - 딥러닝 시스템 운영</title>
+<style>
+body { font-family: 'Segoe UI', 'Noto Sans KR', sans-serif; margin: 32px; background:#f6f8fb; color:#222; line-height:1.6; }
+h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
+section.meta { background:#fff; border:1px solid #d0d7e3; border-radius:10px; padding:1.3rem; margin-bottom:1.6rem; }
+.question { background:#fff; border:1px solid #d7deeb; border-left:6px solid #4a6fa5; padding:1.1rem; border-radius:8px; margin-bottom:1.1rem; }
+.question-meta { font-size:0.85rem; color:#52627a; display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem; }
+ol.options { margin-top:0.5rem; padding-left:1.6rem; }
+ol.options li { margin-bottom:0.5rem; }
+textarea.short-answer { width:100%; min-height:3.4rem; border:1px dashed #9aa5bd; border-radius:6px; padding:0.6rem; background:#fbfcff; }
+textarea.essay-answer { width:100%; min-height:7rem; border:1px dashed #9aa5bd; border-radius:6px; padding:0.6rem; background:#fbfcff; }
+</style>
+</head>
+<body>
+<h1>모의고사 4 - 딥러닝 시스템 운영</h1>
+<section class='meta'>
+<p>딥러닝 학습 과정, 재현성, 배포 전 검증과 모니터링 준비 등 운영 단계의 핵심 쟁점을 다룹니다.</p>
+<p>총 50문항 · 평균 난이도 2.02</p>
+</section>
+
+<h2>객관식</h2>
+<div class='question' id='q1'>
+<div class='question-meta'><span>문항 1</span><span>객관식</span><span>난이도 2</span></div>
+<p>농업 수확량 예측 프로젝트에서 클래스 불균형으로 소수 클래스를 제대로 예측하지 못한다 상황에서 가장 먼저 고려해야 할 대응은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q1' value='A'> <strong>A.</strong> 학습률을 크게 높여 소수 클래스의 확률을 강제로 올린다.</label></li>
+<li><label><input type='radio' name='q1' value='B'> <strong>B.</strong> 클래스 가중치나 재표본 기법을 적용해 데이터 균형을 맞춘다.</label></li>
+<li><label><input type='radio' name='q1' value='C'> <strong>C.</strong> 라벨이 많은 클래스를 삭제한다.</label></li>
+<li><label><input type='radio' name='q1' value='D'> <strong>D.</strong> 출력층 활성 함수를 임의로 변경한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q2'>
+<div class='question-meta'><span>문항 2</span><span>객관식</span><span>난이도 2</span></div>
+<p>교육 학습 추천 데이터에서 결측치가 많아 모델이 불안정하게 학습된다 경우 가장 타당한 접근은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q2' value='A'> <strong>A.</strong> 결측치가 있는 행을 전부 삭제한다.</label></li>
+<li><label><input type='radio' name='q2' value='B'> <strong>B.</strong> 결측치를 모두 0으로 채운다.</label></li>
+<li><label><input type='radio' name='q2' value='C'> <strong>C.</strong> 결측 원인을 분석하고 적절한 대체 전략을 설계한다.</label></li>
+<li><label><input type='radio' name='q2' value='D'> <strong>D.</strong> 결측이 있는 특성을 제거한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q3'>
+<div class='question-meta'><span>문항 3</span><span>객관식</span><span>난이도 2</span></div>
+<p>콜센터 상담 분석 프로젝트에서 모델이 과적합되어 평가 지표가 불안정하다면 무엇을 우선 적용해야 하는가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q3' value='A'> <strong>A.</strong> 평가 데이터를 훈련 세트에 포함한다.</label></li>
+<li><label><input type='radio' name='q3' value='B'> <strong>B.</strong> 모델 깊이를 계속 늘린다.</label></li>
+<li><label><input type='radio' name='q3' value='C'> <strong>C.</strong> 교차 검증과 정규화·드롭아웃 등 규제를 도입한다.</label></li>
+<li><label><input type='radio' name='q3' value='D'> <strong>D.</strong> 학습률을 0에 가깝게 둔다.</label></li>
+</ol>
+</div>
+<div class='question' id='q4'>
+<div class='question-meta'><span>문항 4</span><span>객관식</span><span>난이도 2</span></div>
+<p>사물인터넷 장애 진단 프로젝트에서 의사결정 근거를 이해관계자에게 설명해야 한다 상황일 때 가장 적절한 방법은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q4' value='A'> <strong>A.</strong> 가중치를 무작위 초기화 상태로 유지한다.</label></li>
+<li><label><input type='radio' name='q4' value='B'> <strong>B.</strong> 모델 구조를 더욱 복잡하게 만든다.</label></li>
+<li><label><input type='radio' name='q4' value='C'> <strong>C.</strong> SHAP이나 LIME 같은 해석 도구로 중요 특성과 기여도를 제시한다.</label></li>
+<li><label><input type='radio' name='q4' value='D'> <strong>D.</strong> 모델 사용을 중단한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q5'>
+<div class='question-meta'><span>문항 5</span><span>객관식</span><span>난이도 2</span></div>
+<p>미디어 콘텐츠 큐레이션 서비스를 운영할 때 운영 중 자료 분포가 변할 수 있어 성능 저하가 우려된다면 어떤 대응이 필요한가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q5' value='A'> <strong>A.</strong> 운영 데이터를 저장하지 않는다.</label></li>
+<li><label><input type='radio' name='q5' value='B'> <strong>B.</strong> 성능과 입력 분포를 모니터링하고 이상 징후 알림을 설정한다.</label></li>
+<li><label><input type='radio' name='q5' value='C'> <strong>C.</strong> 모델을 무작위로 재학습한다.</label></li>
+<li><label><input type='radio' name='q5' value='D'> <strong>D.</strong> 평가 지표를 제거한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q6'>
+<div class='question-meta'><span>문항 6</span><span>객관식</span><span>난이도 1</span></div>
+<p>의약품 수요 예측 프로젝트에서 성능 비교를 위한 기준이 없어 개선 효과를 판단하기 어렵다 때 가장 적절한 절차는?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q6' value='A'> <strong>A.</strong> 바로 복잡한 모델을 배포한다.</label></li>
+<li><label><input type='radio' name='q6' value='B'> <strong>B.</strong> 간단한 기준 모델을 마련해 현재 데이터를 점검한다.</label></li>
+<li><label><input type='radio' name='q6' value='C'> <strong>C.</strong> 라벨을 무작위로 섞는다.</label></li>
+<li><label><input type='radio' name='q6' value='D'> <strong>D.</strong> 평가 지표를 제거한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q7'>
+<div class='question-meta'><span>문항 7</span><span>객관식</span><span>난이도 2</span></div>
+<p>기상 재난 조기 경보 데이터에서 특성마다 단위와 규모가 크게 달라 학습이 불안정하다면 어떤 조치가 필요한가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q7' value='A'> <strong>A.</strong> 수치형 변수를 모두 삭제한다.</label></li>
+<li><label><input type='radio' name='q7' value='B'> <strong>B.</strong> 표준화나 정규화 등 스케일링을 적용한다.</label></li>
+<li><label><input type='radio' name='q7' value='C'> <strong>C.</strong> 범주형을 숫자로 임의 변환한다.</label></li>
+<li><label><input type='radio' name='q7' value='D'> <strong>D.</strong> 모델 층 수를 줄인다.</label></li>
+</ol>
+</div>
+<div class='question' id='q8'>
+<div class='question-meta'><span>문항 8</span><span>객관식</span><span>난이도 2</span></div>
+<p>산업용 로봇 이상 탐지 프로젝트에서 실험 결과가 팀 내에 제대로 공유되지 않는다 문제를 해결하려면?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q8' value='A'> <strong>A.</strong> 실험 결과를 각자 메모로만 기록한다.</label></li>
+<li><label><input type='radio' name='q8' value='B'> <strong>B.</strong> 실험 관리 도구로 하이퍼파라미터와 성능을 추적한다.</label></li>
+<li><label><input type='radio' name='q8' value='C'> <strong>C.</strong> 모델 파일을 임의로 덮어쓴다.</label></li>
+<li><label><input type='radio' name='q8' value='D'> <strong>D.</strong> 협업을 중단한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q9'>
+<div class='question-meta'><span>문항 9</span><span>객관식</span><span>난이도 2</span></div>
+<p>헬스케어 진단 챗봇 서비스에서 모델 편향이 사회적 문제를 일으킬 수 있다 때 우선 수행해야 할 일은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q9' value='A'> <strong>A.</strong> 민감 속성을 전부 제거한다.</label></li>
+<li><label><input type='radio' name='q9' value='B'> <strong>B.</strong> 편향 지표와 집단별 성능을 측정해 보정한다.</label></li>
+<li><label><input type='radio' name='q9' value='C'> <strong>C.</strong> 성능이 높다면 문제 없다.</label></li>
+<li><label><input type='radio' name='q9' value='D'> <strong>D.</strong> 규제 보고를 생략한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q10'>
+<div class='question-meta'><span>문항 10</span><span>객관식</span><span>난이도 2</span></div>
+<p>스마트 시티 범죄 예방 프로젝트에서 수집된 라벨의 품질이 일정하지 않다 경우 어떤 조치를 취해야 하는가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q10' value='A'> <strong>A.</strong> 라벨 오류를 무시한다.</label></li>
+<li><label><input type='radio' name='q10' value='B'> <strong>B.</strong> 라벨을 모두 자동으로 생성한다.</label></li>
+<li><label><input type='radio' name='q10' value='C'> <strong>C.</strong> 이중 라벨링과 샘플 검수 프로세스를 도입한다.</label></li>
+<li><label><input type='radio' name='q10' value='D'> <strong>D.</strong> 데이터를 삭제한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q11'>
+<div class='question-meta'><span>문항 11</span><span>객관식</span><span>난이도 2</span></div>
+<p>위험 물질 유출 감시 프로젝트에서 데이터 버전이 섞여 재현성이 떨어진다 문제를 막으려면?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q11' value='A'> <strong>A.</strong> 데이터 버전을 체계적으로 관리하고 변경 이력을 기록한다.</label></li>
+<li><label><input type='radio' name='q11' value='B'> <strong>B.</strong> 임시 파일을 계속 덮어쓴다.</label></li>
+<li><label><input type='radio' name='q11' value='C'> <strong>C.</strong> 이전 데이터를 삭제한다.</label></li>
+<li><label><input type='radio' name='q11' value='D'> <strong>D.</strong> 데이터 위치를 공유하지 않는다.</label></li>
+</ol>
+</div>
+<div class='question' id='q12'>
+<div class='question-meta'><span>문항 12</span><span>객관식</span><span>난이도 2</span></div>
+<p>해양 생태 관측 프로젝트에서 클래스 불균형과 비용 구조가 다른 평가 지표를 요구한다면 어떤 기준이 필요한가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q12' value='A'> <strong>A.</strong> 정확도만 확인한다.</label></li>
+<li><label><input type='radio' name='q12' value='B'> <strong>B.</strong> 훈련 손실만 모니터링한다.</label></li>
+<li><label><input type='radio' name='q12' value='C'> <strong>C.</strong> 재현율·정밀도·AUC 등 문제에 맞는 지표를 설정한다.</label></li>
+<li><label><input type='radio' name='q12' value='D'> <strong>D.</strong> 평가 지표를 수시로 바꾼다.</label></li>
+</ol>
+</div>
+<div class='question' id='q13'>
+<div class='question-meta'><span>문항 13</span><span>객관식</span><span>난이도 2</span></div>
+<p>에너지 설비 효율 개선 서비스에서 개인정보 규제를 준수하면서 모델을 운영해야 한다 때 가장 적절한 조치는?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q13' value='A'> <strong>A.</strong> 외부 파트너에게 원본 데이터를 제공한다.</label></li>
+<li><label><input type='radio' name='q13' value='B'> <strong>B.</strong> 접근 제어를 제거한다.</label></li>
+<li><label><input type='radio' name='q13' value='C'> <strong>C.</strong> 암호화를 해제한다.</label></li>
+<li><label><input type='radio' name='q13' value='D'> <strong>D.</strong> 민감 정보를 최소화하고 익명화·접근 통제를 적용한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q14'>
+<div class='question-meta'><span>문항 14</span><span>객관식</span><span>난이도 3</span></div>
+<p>커머스 추천 최적화 프로젝트에서 새 모델 배포가 실패했을 때 즉시 복구가 가능해야 한다 준비를 하려면?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q14' value='A'> <strong>A.</strong> 자동 롤백과 버전 고정 전략을 설계한다.</label></li>
+<li><label><input type='radio' name='q14' value='B'> <strong>B.</strong> 신규 모델로 바로 운영 데이터를 덮어쓴다.</label></li>
+<li><label><input type='radio' name='q14' value='C'> <strong>C.</strong> 문제 발생 시 운영을 중단한다.</label></li>
+<li><label><input type='radio' name='q14' value='D'> <strong>D.</strong> 문서화를 생략한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q15'>
+<div class='question-meta'><span>문항 15</span><span>객관식</span><span>난이도 2</span></div>
+<p>스마트 농업 질병 예측 서비스에서 사용자 피드백이 모델에 다시 반영되는 순환 구조가 있다면 어떤 관리가 필요한가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q15' value='A'> <strong>A.</strong> 피드백을 차단하고 무시한다.</label></li>
+<li><label><input type='radio' name='q15' value='B'> <strong>B.</strong> 피드백 데이터를 추적하고 편향 여부를 주기적으로 점검한다.</label></li>
+<li><label><input type='radio' name='q15' value='C'> <strong>C.</strong> 모델을 즉시 재학습한다.</label></li>
+<li><label><input type='radio' name='q15' value='D'> <strong>D.</strong> 라벨을 모두 삭제한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q16'>
+<div class='question-meta'><span>문항 16</span><span>객관식</span><span>난이도 2</span></div>
+<p>금융 상품 추천 프로젝트에서 클래스 불균형으로 소수 클래스를 제대로 예측하지 못한다 상황에서 가장 먼저 고려해야 할 대응은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q16' value='A'> <strong>A.</strong> 학습률을 크게 높여 소수 클래스의 확률을 강제로 올린다.</label></li>
+<li><label><input type='radio' name='q16' value='B'> <strong>B.</strong> 클래스 가중치나 재표본 기법을 적용해 데이터 균형을 맞춘다.</label></li>
+<li><label><input type='radio' name='q16' value='C'> <strong>C.</strong> 라벨이 많은 클래스를 삭제한다.</label></li>
+<li><label><input type='radio' name='q16' value='D'> <strong>D.</strong> 출력층 활성 함수를 임의로 변경한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q17'>
+<div class='question-meta'><span>문항 17</span><span>객관식</span><span>난이도 2</span></div>
+<p>문서 요약 자동화 데이터에서 결측치가 많아 모델이 불안정하게 학습된다 경우 가장 타당한 접근은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q17' value='A'> <strong>A.</strong> 결측치가 있는 행을 전부 삭제한다.</label></li>
+<li><label><input type='radio' name='q17' value='B'> <strong>B.</strong> 결측치를 모두 0으로 채운다.</label></li>
+<li><label><input type='radio' name='q17' value='C'> <strong>C.</strong> 결측 원인을 분석하고 적절한 대체 전략을 설계한다.</label></li>
+<li><label><input type='radio' name='q17' value='D'> <strong>D.</strong> 결측이 있는 특성을 제거한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q18'>
+<div class='question-meta'><span>문항 18</span><span>객관식</span><span>난이도 2</span></div>
+<p>음악 취향 분석 프로젝트에서 모델이 과적합되어 평가 지표가 불안정하다면 무엇을 우선 적용해야 하는가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q18' value='A'> <strong>A.</strong> 평가 데이터를 훈련 세트에 포함한다.</label></li>
+<li><label><input type='radio' name='q18' value='B'> <strong>B.</strong> 모델 깊이를 계속 늘린다.</label></li>
+<li><label><input type='radio' name='q18' value='C'> <strong>C.</strong> 교차 검증과 정규화·드롭아웃 등 규제를 도입한다.</label></li>
+<li><label><input type='radio' name='q18' value='D'> <strong>D.</strong> 학습률을 0에 가깝게 둔다.</label></li>
+</ol>
+</div>
+<div class='question' id='q19'>
+<div class='question-meta'><span>문항 19</span><span>객관식</span><span>난이도 2</span></div>
+<p>항공 수요 예측 프로젝트에서 의사결정 근거를 이해관계자에게 설명해야 한다 상황일 때 가장 적절한 방법은?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q19' value='A'> <strong>A.</strong> 가중치를 무작위 초기화 상태로 유지한다.</label></li>
+<li><label><input type='radio' name='q19' value='B'> <strong>B.</strong> 모델 구조를 더욱 복잡하게 만든다.</label></li>
+<li><label><input type='radio' name='q19' value='C'> <strong>C.</strong> SHAP이나 LIME 같은 해석 도구로 중요 특성과 기여도를 제시한다.</label></li>
+<li><label><input type='radio' name='q19' value='D'> <strong>D.</strong> 모델 사용을 중단한다.</label></li>
+</ol>
+</div>
+<div class='question' id='q20'>
+<div class='question-meta'><span>문항 20</span><span>객관식</span><span>난이도 2</span></div>
+<p>지리 정보 기반 수요 예측 서비스를 운영할 때 운영 중 자료 분포가 변할 수 있어 성능 저하가 우려된다면 어떤 대응이 필요한가?</p>
+<ol class='options' type='A'>
+<li><label><input type='radio' name='q20' value='A'> <strong>A.</strong> 운영 데이터를 저장하지 않는다.</label></li>
+<li><label><input type='radio' name='q20' value='B'> <strong>B.</strong> 성능과 입력 분포를 모니터링하고 이상 징후 알림을 설정한다.</label></li>
+<li><label><input type='radio' name='q20' value='C'> <strong>C.</strong> 모델을 무작위로 재학습한다.</label></li>
+<li><label><input type='radio' name='q20' value='D'> <strong>D.</strong> 평가 지표를 제거한다.</label></li>
+</ol>
+</div>
+<h2>주관식</h2>
+<div class='question' id='q21'>
+<div class='question-meta'><span>문항 21</span><span>주관식</span><span>난이도 2</span></div>
+<p>기상 재난 조기 경보 데이터로 모델을 구축할 때 개인정보 보호 계획에 포함해야 할 조치를 서술하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q22'>
+<div class='question-meta'><span>문항 22</span><span>주관식</span><span>난이도 2</span></div>
+<p>산업용 로봇 이상 탐지 프로젝트의 윤리 심사를 준비할 때 필요한 자료를 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q23'>
+<div class='question-meta'><span>문항 23</span><span>주관식</span><span>난이도 2</span></div>
+<p>헬스케어 진단 챗봇 프로젝트에서 도메인 전문가와 협업할 때 준비해야 할 내용을 정리하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q24'>
+<div class='question-meta'><span>문항 24</span><span>주관식</span><span>난이도 2</span></div>
+<p>스마트 시티 범죄 예방 데이터를 다루는 거버넌스 회의에서 다뤄야 할 안건을 제시하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q25'>
+<div class='question-meta'><span>문항 25</span><span>주관식</span><span>난이도 2</span></div>
+<p>위험 물질 유출 감시 모델의 서비스 수준 협약(SLA)을 정의할 때 포함해야 할 항목을 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q26'>
+<div class='question-meta'><span>문항 26</span><span>주관식</span><span>난이도 2</span></div>
+<p>해양 생태 관측 모델의 레이블을 주기적으로 갱신할 때 필요한 프로세스를 서술하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q27'>
+<div class='question-meta'><span>문항 27</span><span>주관식</span><span>난이도 2</span></div>
+<p>에너지 설비 효율 개선 서비스에서 사용자 피드백이 모델에 반영될 때 주의해야 할 점을 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q28'>
+<div class='question-meta'><span>문항 28</span><span>주관식</span><span>난이도 2</span></div>
+<p>커머스 추천 최적화 프로젝트에서 테스트 데이터를 관리할 때 지켜야 할 원칙을 서술하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q29'>
+<div class='question-meta'><span>문항 29</span><span>주관식</span><span>난이도 2</span></div>
+<p>스마트 농업 질병 예측 모델의 KPI를 이해관계자와 협의할 때 포함해야 할 논의 항목을 정리하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q30'>
+<div class='question-meta'><span>문항 30</span><span>주관식</span><span>난이도 2</span></div>
+<p>금융 상품 추천 모델 관련 정보를 운영팀과 공유할 때 포함해야 할 내용을 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q31'>
+<div class='question-meta'><span>문항 31</span><span>주관식</span><span>난이도 2</span></div>
+<p>문서 요약 자동화 모델 장애 대응 훈련을 설계할 때 필요한 단계를 제시하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q32'>
+<div class='question-meta'><span>문항 32</span><span>주관식</span><span>난이도 3</span></div>
+<p>음악 취향 분석 모델을 섀도 배포할 때 준비해야 할 요소를 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q33'>
+<div class='question-meta'><span>문항 33</span><span>주관식</span><span>난이도 2</span></div>
+<p>항공 수요 예측 시스템의 관측 가능성(Observability) 대시보드를 구성할 때 포함해야 할 지표를 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q34'>
+<div class='question-meta'><span>문항 34</span><span>주관식</span><span>난이도 2</span></div>
+<p>지리 정보 기반 수요 예측 프로젝트에서 초기 데이터 프로파일링을 수행할 때 확인해야 할 핵심 항목을 두 가지 이상 서술하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q35'>
+<div class='question-meta'><span>문항 35</span><span>주관식</span><span>난이도 2</span></div>
+<p>고객 이탈 예측 데이터의 수치형 특성을 정규화해야 하는 이유를 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q36'>
+<div class='question-meta'><span>문항 36</span><span>주관식</span><span>난이도 2</span></div>
+<p>신용 위험 평가 프로젝트에서 결측치 발생 원인을 조사할 때 고려해야 할 요소를 제시하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q37'>
+<div class='question-meta'><span>문항 37</span><span>주관식</span><span>난이도 2</span></div>
+<p>의료 영상 판독 데이터에서 범주형 변수를 인코딩할 때 선택 기준을 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q38'>
+<div class='question-meta'><span>문항 38</span><span>주관식</span><span>난이도 2</span></div>
+<p>제조 설비 이상 탐지 프로젝트의 데이터 분할(train/validation/test) 전략을 설계할 때 유의해야 할 점은 무엇인가?</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q39'>
+<div class='question-meta'><span>문항 39</span><span>주관식</span><span>난이도 2</span></div>
+<p>온라인 광고 클릭 예측 프로젝트에서 교차 검증을 도입해야 하는 이유와 설정 시 주의점을 정리하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q40'>
+<div class='question-meta'><span>문항 40</span><span>주관식</span><span>난이도 2</span></div>
+<p>음성 감정 분석 모델의 하이퍼파라미터 탐색 전략을 어떻게 세울지 서술하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q41'>
+<div class='question-meta'><span>문항 41</span><span>주관식</span><span>난이도 1</span></div>
+<p>에너지 수요 예측 프로젝트에서 랜덤 시드를 관리해야 하는 이유와 실무적인 방법을 제시하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q42'>
+<div class='question-meta'><span>문항 42</span><span>주관식</span><span>난이도 2</span></div>
+<p>배송 경로 최적화 모델의 피처 중요도를 보고할 때 포함해야 할 내용을 정리하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q43'>
+<div class='question-meta'><span>문항 43</span><span>주관식</span><span>난이도 2</span></div>
+<p>소셜 미디어 여론 분석 프로젝트의 재현성 문서를 작성할 때 필수로 담아야 할 항목을 서술하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q44'>
+<div class='question-meta'><span>문항 44</span><span>주관식</span><span>난이도 2</span></div>
+<p>보험 사기 탐지 프로젝트에서 실험 추적 체계를 갖출 때 고려해야 할 지표와 기록 항목을 설명하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<div class='question' id='q45'>
+<div class='question-meta'><span>문항 45</span><span>주관식</span><span>난이도 2</span></div>
+<p>스마트 팩토리 품질 검사 서비스에서 모델 버전을 관리할 때 필요한 절차를 제시하라.</p>
+<textarea class='short-answer' placeholder='답안을 입력하세요'></textarea>
+</div>
+<h2>서답형</h2>
+<div class='question' id='q46'>
+<div class='question-meta'><span>문항 46</span><span>서답형</span><span>난이도 2</span></div>
+<p>항공 수요 예측 서비스의 사용자 커뮤니케이션 가이드를 작성하는 절차를 설명하라.</p>
+<textarea class='essay-answer' placeholder='핵심 근거와 단계를 정리하세요'></textarea>
+</div>
+<div class='question' id='q47'>
+<div class='question-meta'><span>문항 47</span><span>서답형</span><span>난이도 3</span></div>
+<p>지리 정보 기반 수요 예측 조직에서 모델 감사 준비를 진행할 때의 준비 절차를 서술하라.</p>
+<textarea class='essay-answer' placeholder='핵심 근거와 단계를 정리하세요'></textarea>
+</div>
+<div class='question' id='q48'>
+<div class='question-meta'><span>문항 48</span><span>서답형</span><span>난이도 2</span></div>
+<p>고객 이탈 예측 프로젝트의 데이터 계약 관리를 위해 필요한 단계를 설명하라.</p>
+<textarea class='essay-answer' placeholder='핵심 근거와 단계를 정리하세요'></textarea>
+</div>
+<div class='question' id='q49'>
+<div class='question-meta'><span>문항 49</span><span>서답형</span><span>난이도 2</span></div>
+<p>신용 위험 평가 조직에서 AI 윤리 교육 프로그램을 설계하는 과정을 제시하라.</p>
+<textarea class='essay-answer' placeholder='핵심 근거와 단계를 정리하세요'></textarea>
+</div>
+<div class='question' id='q50'>
+<div class='question-meta'><span>문항 50</span><span>서답형</span><span>난이도 2</span></div>
+<p>의료 영상 판독 팀의 협업 워크플로 정비를 구축하는 방법을 설명하라.</p>
+<textarea class='essay-answer' placeholder='핵심 근거와 단계를 정리하세요'></textarea>
+</div>
+</body></html>

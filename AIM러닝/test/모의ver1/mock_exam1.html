@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>모의고사 1</title>
+  <style>
+    body { font-family: 'Segoe UI', 'Nanum Gothic', sans-serif; margin: 24px; background: #f6f7fb; color: #222; }
+    header { text-align: center; margin-bottom: 32px; }
+    h1 { margin-bottom: 8px; }
+    .info { font-size: 0.95rem; color: #555; }
+    .question-list { list-style: none; padding: 0; margin: 0; }
+    .question { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(15, 34, 58, 0.12); }
+    .q-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .q-number { font-weight: 700; font-size: 1.1rem; color: #2c4a78; }
+    .q-tags { font-size: 0.85rem; color: #446089; }
+    .prompt { margin-bottom: 12px; line-height: 1.6; }
+    .options { margin: 0; padding-left: 18px; }
+    .options li { margin-bottom: 6px; }
+    .options input[type="radio"] { margin-right: 6px; transform: scale(1.1); }
+    textarea.answer-area { margin-top: 12px; border: 1px dashed #b6c2d9; border-radius: 8px; background: #fdfefe; width: 100%; box-sizing: border-box; padding: 10px; font-size: 0.95rem; color: #1f2d3d; resize: vertical; }
+    textarea.answer-area.short { height: 60px; }
+    textarea.answer-area.descriptive { height: 160px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>모의고사 1</h1>
+  <div class="info">
+    총 50문항 (객관식·주관식 45문항, 서술형 5문항) | 평균 난이도 2/5
+  </div>
+  <div class="info">
+    응시 시간 권장: 90분 | 필요시 페이지를 출력해 활용하세요.
+  </div>
+</header>
+<ol class="question-list">
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q01</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">리스트 컴프리헨션으로 1부터 7까지의 정수 중 짝수만 제곱한 리스트를 만드는 올바른 코드는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q1" value="A"> A. [x**2 for x in range(1, 7) if x % 2 == 0]</label></li>
+      <li><label><input type="radio" name="q1" value="B"> B. [x**2 for x in range(1, 8) if x % 2 == 0]</label></li>
+      <li><label><input type="radio" name="q1" value="C"> C. [x**2 for x in range(8) if x % 2 == 0]</label></li>
+      <li><label><input type="radio" name="q1" value="D"> D. [x**2 if x % 2 == 0 for x in range(1, 8)]</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q02</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">다음 리스트 [1, 2, 3, 4, 5]에서 3번째 원소부터 슬라이싱한 결과는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q2" value="A"> A. [3, 4, 5]</label></li>
+      <li><label><input type="radio" name="q2" value="B"> B. [1, 2, 3]</label></li>
+      <li><label><input type="radio" name="q2" value="C"> C. [1, 4]</label></li>
+      <li><label><input type="radio" name="q2" value="D"> D. [4, 5]</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q03</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">NumPy에서 shape가 (3, 4)인 배열 A와 shape가 (4, 3)인 배열 B를 행렬곱할 때 결과 shape는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q3" value="A"> A. (3, 3)</label></li>
+      <li><label><input type="radio" name="q3" value="B"> B. (4, 4)</label></li>
+      <li><label><input type="radio" name="q3" value="C"> C. (4, 3)</label></li>
+      <li><label><input type="radio" name="q3" value="D"> D. (3, 4)</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q04</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">벡터 v = [1, 2, 3]의 자기 내적(np.dot(v, v)) 값은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q4" value="A"> A. 12</label></li>
+      <li><label><input type="radio" name="q4" value="B"> B. 13</label></li>
+      <li><label><input type="radio" name="q4" value="C"> C. 14</label></li>
+      <li><label><input type="radio" name="q4" value="D"> D. 15</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q05</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">numpy.arange(0, 55, 3)로 생성한 배열의 길이는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q5" value="A"> A. 17</label></li>
+      <li><label><input type="radio" name="q5" value="B"> B. 18</label></li>
+      <li><label><input type="radio" name="q5" value="C"> C. 19</label></li>
+      <li><label><input type="radio" name="q5" value="D"> D. 20</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q06</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">다음 중 불변(immutable) 자료형만을 고른 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q6" value="A"> A. list, tuple</label></li>
+      <li><label><input type="radio" name="q6" value="B"> B. tuple, str</label></li>
+      <li><label><input type="radio" name="q6" value="C"> C. dict, tuple</label></li>
+      <li><label><input type="radio" name="q6" value="D"> D. set, tuple</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q07</span>
+      <span class="q-tags">[Python 기초] 객관식</span>
+    </div>
+    <div class="prompt">파이썬에서 enumerate() 함수의 기본 동작 설명으로 옳은 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q7" value="A"> A. 인덱스 1부터 시작하여 요소와 함께 반환한다</label></li>
+      <li><label><input type="radio" name="q7" value="B"> B. 인덱스 0부터 시작하여 (인덱스, 값) 튜플을 반환한다</label></li>
+      <li><label><input type="radio" name="q7" value="C"> C. 리스트를 사전으로 변환한다</label></li>
+      <li><label><input type="radio" name="q7" value="D"> D. 반복 가능한 객체를 역순으로 정렬한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q08</span>
+      <span class="q-tags">[Python 기초] 주관식</span>
+    </div>
+    <div class="prompt">리스트 컴프리헨션 [n for n in range(1, 6)]의 합은?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q09</span>
+      <span class="q-tags">[Python 기초] 주관식</span>
+    </div>
+    <div class="prompt">NumPy 배열 np.arange(0, 12).reshape(3, -1)의 열(column) 수는?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q10</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">평균제곱오차(MSE)에 대한 설명으로 옳은 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q10" value="A"> A. 절댓값 오차의 평균을 의미한다</label></li>
+      <li><label><input type="radio" name="q10" value="B"> B. 오차 제곱의 평균으로 이상치에 민감하다</label></li>
+      <li><label><input type="radio" name="q10" value="C"> C. 분류 문제에서 사용하는 전형적 손실이다</label></li>
+      <li><label><input type="radio" name="q10" value="D"> D. 학습률을 자동 조절하는 방법이다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q11</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">샘플 90개, 특성 3개인 데이터를 LinearRegression으로 학습할 때 편향(bias) 포함 파라미터 개수는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q11" value="A"> A. 3</label></li>
+      <li><label><input type="radio" name="q11" value="B"> B. 4</label></li>
+      <li><label><input type="radio" name="q11" value="C"> C. 6</label></li>
+      <li><label><input type="radio" name="q11" value="D"> D. 12</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q12</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">경사하강법에서 학습률을 0.011로 설정했더니 발산한다. 가장 우선 고려할 조치는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q12" value="A"> A. 학습률을 더 크게 설정한다</label></li>
+      <li><label><input type="radio" name="q12" value="B"> B. 학습률을 더 작게 설정한다</label></li>
+      <li><label><input type="radio" name="q12" value="C"> C. 에폭 수를 줄인다</label></li>
+      <li><label><input type="radio" name="q12" value="D"> D. 드롭아웃을 추가한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q13</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">L2 정규화(Ridge)의 기대 효과는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q13" value="A"> A. 희소한 해를 얻는다</label></li>
+      <li><label><input type="radio" name="q13" value="B"> B. 큰 가중치를 억제해 과적합을 완화한다</label></li>
+      <li><label><input type="radio" name="q13" value="C"> C. 비선형성을 모델링한다</label></li>
+      <li><label><input type="radio" name="q13" value="D"> D. 데이터 누락을 보완한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q14</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">다중공선성(multicollinearity)의 주요 문제점은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q14" value="A"> A. 데이터 차원이 줄어든다</label></li>
+      <li><label><input type="radio" name="q14" value="B"> B. 가중치 추정이 불안정해진다</label></li>
+      <li><label><input type="radio" name="q14" value="C"> C. 데이터가 희소해진다</label></li>
+      <li><label><input type="radio" name="q14" value="D"> D. 손실 함수가 볼록하지 않게 된다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q15</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">결정계수(R^2)에 대한 설명으로 옳은 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q15" value="A"> A. 값이 1에 가까울수록 설명력이 높다</label></li>
+      <li><label><input type="radio" name="q15" value="B"> B. 항상 0과 1 사이의 값을 갖는다</label></li>
+      <li><label><input type="radio" name="q15" value="C"> C. 음수가 될 수 없다</label></li>
+      <li><label><input type="radio" name="q15" value="D"> D. 분류 정확도를 의미한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q16</span>
+      <span class="q-tags">[선형 회귀] 객관식</span>
+    </div>
+    <div class="prompt">표준화(Standardization)의 주된 목적은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q16" value="A"> A. 이상치를 제거한다</label></li>
+      <li><label><input type="radio" name="q16" value="B"> B. 모델을 선형으로 만든다</label></li>
+      <li><label><input type="radio" name="q16" value="C"> C. 특성 스케일 차이를 줄여 학습을 안정화한다</label></li>
+      <li><label><input type="radio" name="q16" value="D"> D. 데이터 개수를 증가시킨다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q17</span>
+      <span class="q-tags">[선형 회귀] 주관식</span>
+    </div>
+    <div class="prompt">단일 샘플에 대해 예측값 13.0, 실제값 11.2, 입력 특성 값 3일 때 MSE 기준 가중치 w에 대한 경사 2*(y_hat - y)*x 값은?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q18</span>
+      <span class="q-tags">[선형 회귀] 주관식</span>
+    </div>
+    <div class="prompt">train_test_split(data, test_size=0.2)로 분할하면 학습 세트 비율은?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q19</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">상관계수 heatmap을 통해 확인할 수 있는 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q19" value="A"> A. 변수 사이 선형 관계의 방향과 강도</label></li>
+      <li><label><input type="radio" name="q19" value="B"> B. 모델의 학습률</label></li>
+      <li><label><input type="radio" name="q19" value="C"> C. 데이터의 정규분포 여부</label></li>
+      <li><label><input type="radio" name="q19" value="D"> D. 결측치 개수</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q20</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">박스플롯(box plot)이 제공하지 않는 정보는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q20" value="A"> A. 중앙값</label></li>
+      <li><label><input type="radio" name="q20" value="B"> B. 사분위 범위</label></li>
+      <li><label><input type="radio" name="q20" value="C"> C. 이상치 후보</label></li>
+      <li><label><input type="radio" name="q20" value="D"> D. 변수간 상관관계</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q21</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">히스토그램 bin 수를 11으로 설정하는 주된 이유는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q21" value="A"> A. bin 수가 많을수록 좋기 때문이다</label></li>
+      <li><label><input type="radio" name="q21" value="B"> B. 데이터 규모와 분포를 고려해 적절한 구간으로 나누기 위해서다</label></li>
+      <li><label><input type="radio" name="q21" value="C"> C. 이상치를 제거하기 위해서다</label></li>
+      <li><label><input type="radio" name="q21" value="D"> D. 정규화를 자동으로 수행하기 위해서다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q22</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">pairplot을 사용했을 때 얻을 수 있는 이점은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q22" value="A"> A. 각 변수의 시간 추세를 본다</label></li>
+      <li><label><input type="radio" name="q22" value="B"> B. 변수 쌍의 산점도와 분포를 동시에 확인한다</label></li>
+      <li><label><input type="radio" name="q22" value="C"> C. 문자열 변수 자동 인코딩을 수행한다</label></li>
+      <li><label><input type="radio" name="q22" value="D"> D. 모델 정확도를 계산한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q23</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">상관계수 절대값이 0.72 이상인 변수쌍을 제거하는 목적은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q23" value="A"> A. 데이터 차원을 늘리기 위해서다</label></li>
+      <li><label><input type="radio" name="q23" value="B"> B. 다중공선성을 완화하기 위해서다</label></li>
+      <li><label><input type="radio" name="q23" value="C"> C. 결측치를 대체하기 위해서다</label></li>
+      <li><label><input type="radio" name="q23" value="D"> D. 정규분포를 만들기 위해서다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q24</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">결측치 처리 방법 중 평균 대체(mean imputation)의 단점은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q24" value="A"> A. 계산량이 많다</label></li>
+      <li><label><input type="radio" name="q24" value="B"> B. 분산을 과소추정할 수 있다</label></li>
+      <li><label><input type="radio" name="q24" value="C"> C. 이상치를 늘린다</label></li>
+      <li><label><input type="radio" name="q24" value="D"> D. 범주형 변수에만 적용 가능하다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q25</span>
+      <span class="q-tags">[EDA] 객관식</span>
+    </div>
+    <div class="prompt">Seaborn jointplot으로 시각화할 수 있는 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q25" value="A"> A. 3차원 산점도</label></li>
+      <li><label><input type="radio" name="q25" value="B"> B. 두 변수의 산점도와 주변 분포</label></li>
+      <li><label><input type="radio" name="q25" value="C"> C. 연속형 변수의 누적 분포</label></li>
+      <li><label><input type="radio" name="q25" value="D"> D. 카테고리형 변수의 트리맵</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q26</span>
+      <span class="q-tags">[EDA] 주관식</span>
+    </div>
+    <div class="prompt">총 220개 관측치 중 결측치 6개의 결측률은? (소수 셋째 자리)</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q27</span>
+      <span class="q-tags">[EDA] 주관식</span>
+    </div>
+    <div class="prompt">값 53, 평균 42, 표준편차 6일 때 z-score는?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q28</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">MLP에서 ReLU 활성화 함수를 사용하는 주된 이유는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q28" value="A"> A. 모든 입력에서 미분값이 0이어서 계산이 단순하다</label></li>
+      <li><label><input type="radio" name="q28" value="B"> B. 기울기 소실 문제를 완화한다</label></li>
+      <li><label><input type="radio" name="q28" value="C"> C. 출력이 항상 0과 1 사이가 된다</label></li>
+      <li><label><input type="radio" name="q28" value="D"> D. 확률 분포를 바로 반환한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q29</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">은닉층이 3층인 MLP에서 파라미터 수가 급격히 증가하는 이유는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q29" value="A"> A. 편향 항이 없어지기 때문</label></li>
+      <li><label><input type="radio" name="q29" value="B"> B. 층마다 완전연결 가중치 행렬이 추가되기 때문</label></li>
+      <li><label><input type="radio" name="q29" value="C"> C. 손실 함수가 비선형이기 때문</label></li>
+      <li><label><input type="radio" name="q29" value="D"> D. 학습률이 작기 때문</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q30</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">역전파(backpropagation)의 핵심 아이디어는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q30" value="A"> A. 출력을 정규화한다</label></li>
+      <li><label><input type="radio" name="q30" value="B"> B. 손실 미분을 체인룰로 각 층에 전달한다</label></li>
+      <li><label><input type="radio" name="q30" value="C"> C. 입력 데이터를 무작위로 섞는다</label></li>
+      <li><label><input type="radio" name="q30" value="D"> D. 모델을 얕게 만든다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q31</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">소프트맥스(softmax) 함수의 특징으로 옳은 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q31" value="A"> A. 각 원소에 독립적으로 적용되어 합이 1보다 크다</label></li>
+      <li><label><input type="radio" name="q31" value="B"> B. 출력 합이 1이 되는 확률 분포를 만든다</label></li>
+      <li><label><input type="radio" name="q31" value="C"> C. 음수 입력을 모두 0으로 만든다</label></li>
+      <li><label><input type="radio" name="q31" value="D"> D. 활성화 없이도 적용 불필요하다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q32</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">드롭아웃(dropout) 비율을 0.3로 설정하는 목적은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q32" value="A"> A. 항상 같은 뉴런만 활성화하기 위해서다</label></li>
+      <li><label><input type="radio" name="q32" value="B"> B. 훈련 시 일부 뉴런을 무작위 비활성화해 과적합을 줄인다</label></li>
+      <li><label><input type="radio" name="q32" value="C"> C. 학습률을 조절한다</label></li>
+      <li><label><input type="radio" name="q32" value="D"> D. 가중치를 0으로 초기화한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q33</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">배치 정규화(batch normalization)의 효과가 아닌 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q33" value="A"> A. 학습 안정화</label></li>
+      <li><label><input type="radio" name="q33" value="B"> B. 내부 공변량 변화 감소</label></li>
+      <li><label><input type="radio" name="q33" value="C"> C. 과적합 완화에 기여</label></li>
+      <li><label><input type="radio" name="q33" value="D"> D. 모델 깊이를 줄인다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q34</span>
+      <span class="q-tags">[MLP] 객관식</span>
+    </div>
+    <div class="prompt">조기 종료(early stopping)의 동작 원리는?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q34" value="A"> A. 학습률이 0이 되면 중단한다</label></li>
+      <li><label><input type="radio" name="q34" value="B"> B. 검증 손실이 개선되지 않으면 학습을 멈춘다</label></li>
+      <li><label><input type="radio" name="q34" value="C"> C. 모든 가중치가 0이 되면 중단한다</label></li>
+      <li><label><input type="radio" name="q34" value="D"> D. 에폭 수를 무한히 늘린다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q35</span>
+      <span class="q-tags">[MLP] 주관식</span>
+    </div>
+    <div class="prompt">ReLU용 He 초기화에서 fan_in=36일 때 표준편차 sqrt(2/fan_in) 값은? (소수 넷째 자리)</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q36</span>
+      <span class="q-tags">[MLP] 주관식</span>
+    </div>
+    <div class="prompt">입력 차원 11, 은닉 유닛 9개인 완전연결층의 파라미터(가중치+편향) 수는?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q37</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">WordPiece 토큰화의 특징으로 옳은 것은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q37" value="A"> A. 항상 완전한 단어 단위로만 분해한다</label></li>
+      <li><label><input type="radio" name="q37" value="B"> B. 자주 등장하는 서브워드를 우선 포함한다</label></li>
+      <li><label><input type="radio" name="q37" value="C"> C. 문장 길이를 고정하는 패딩 기법이다</label></li>
+      <li><label><input type="radio" name="q37" value="D"> D. 띄어쓰기를 제거한다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q38</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">허깅페이스 토크나이저에서 vocab size를 30500으로 설정할 때 고려해야 할 사항은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q38" value="A"> A. vocab이 작을수록 표현력이 증가한다</label></li>
+      <li><label><input type="radio" name="q38" value="B"> B. vocab이 클수록 메모리와 연산 비용이 증가한다</label></li>
+      <li><label><input type="radio" name="q38" value="C"> C. vocab은 항상 32000으로 고정된다</label></li>
+      <li><label><input type="radio" name="q38" value="D"> D. vocab은 모델 구조와 무관하다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q39</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">임베딩 차원을 144으로 설정했을 때 장점은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q39" value="A"> A. 항상 모델이 과적합된다</label></li>
+      <li><label><input type="radio" name="q39" value="B"> B. 적절한 표현력과 효율의 균형을 잡을 수 있다</label></li>
+      <li><label><input type="radio" name="q39" value="C"> C. 파라미터 수가 입력 길이에 따라 감소한다</label></li>
+      <li><label><input type="radio" name="q39" value="D"> D. 토큰이 사전순으로 정렬된다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q40</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">순환신경망(RNN)에서 기울기 소실 문제가 발생하는 주된 원인은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q40" value="A"> A. 활성화 함수가 선형이기 때문이다</label></li>
+      <li><label><input type="radio" name="q40" value="B"> B. 긴 시퀀스를 따라 미분을 반복하며 값이 0에 수렴하기 때문이다</label></li>
+      <li><label><input type="radio" name="q40" value="C"> C. 출력층이 없기 때문이다</label></li>
+      <li><label><input type="radio" name="q40" value="D"> D. 가중치를 업데이트하지 않기 때문이다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q41</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">LSTM에서 입력 게이트의 역할은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q41" value="A"> A. 이전 셀 상태를 잊게 한다</label></li>
+      <li><label><input type="radio" name="q41" value="B"> B. 후보 메모리를 얼마나 저장할지 결정한다</label></li>
+      <li><label><input type="radio" name="q41" value="C"> C. 출력을 스케일링한다</label></li>
+      <li><label><input type="radio" name="q41" value="D"> D. 시간축을 뒤집는다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q42</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">시퀀스 길이를 11으로 패딩할 때 주의할 점은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q42" value="A"> A. 패딩 토큰도 손실 계산에 포함되면 성능이 저하될 수 있다</label></li>
+      <li><label><input type="radio" name="q42" value="B"> B. 패딩을 사용하면 역전파가 불가능하다</label></li>
+      <li><label><input type="radio" name="q42" value="C"> C. 패딩은 GPU에서만 작동한다</label></li>
+      <li><label><input type="radio" name="q42" value="D"> D. 패딩은 단어 순서를 바꾼다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q43</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 객관식</span>
+    </div>
+    <div class="prompt">교사 강요(teacher forcing)의 단점은?</div>
+    <ul class="options">
+      <li><label><input type="radio" name="q43" value="A"> A. 항상 학습 속도가 느려진다</label></li>
+      <li><label><input type="radio" name="q43" value="B"> B. 추론 시 이전 예측에 덜 적응할 수 있다</label></li>
+      <li><label><input type="radio" name="q43" value="C"> C. 모델이 순전파를 못 한다</label></li>
+      <li><label><input type="radio" name="q43" value="D"> D. 손실 함수가 정의되지 않는다</label></li>
+    </ul>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q44</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 주관식</span>
+    </div>
+    <div class="prompt">입력 시퀀스 길이 13을 최대 길이 17으로 패딩할 때 필요한 패딩 토큰 수는?</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q45</span>
+      <span class="q-tags">[NLP &amp; 순환신경망] 주관식</span>
+    </div>
+    <div class="prompt">LSTM에서 forget 게이트 0.65, 이전 셀 상태 1.5, input 게이트 0.54, 후보 상태 0.35일 때 새로운 셀 상태 값은? (소수 셋째 자리)</div>
+    <textarea class="answer-area short" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q46</span>
+      <span class="q-tags">[서술형] 서술형</span>
+    </div>
+    <div class="prompt">[스마트홈 센서] 데이터(14개 특성)를 선형 회귀로 예측하려 한다. 데이터 확보부터 모델 평가까지 단계별 전략을 상세히 기술하라. (전처리, EDA, 모델 학습, 검증 포함)</div>
+    <textarea class="answer-area descriptive" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q47</span>
+      <span class="q-tags">[서술형] 서술형</span>
+    </div>
+    <div class="prompt">EDA 단계에서 14개 특성을 대상으로 상관분석과 시각화를 수행할 때 사용할 도구와 절차를 설명하고, 결과로 확인해야 할 핵심 항목을 열거하라.</div>
+    <textarea class="answer-area descriptive" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q48</span>
+      <span class="q-tags">[서술형] 서술형</span>
+    </div>
+    <div class="prompt">MLP로 스마트홈 센서 데이터를 학습할 때 은닉층 구성, 활성화 함수, 정규화 기법(dropout 약 0.20)을 포함한 모델 설계안을 제시하고 이유를 설명하라.</div>
+    <textarea class="answer-area descriptive" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q49</span>
+      <span class="q-tags">[서술형] 서술형</span>
+    </div>
+    <div class="prompt">텍스트 길이 약 60 토큰, vocab 24000인 감성 분석 문제를 RNN/LSTM으로 해결할 때 토크나이징, 임베딩, 학습 전략을 포함한 전체 파이프라인을 설계하라.</div>
+    <textarea class="answer-area descriptive" placeholder="답을 입력하세요"></textarea>
+  </li>
+  <li class="question">
+    <div class="q-header">
+      <span class="q-number">Q50</span>
+      <span class="q-tags">[서술형] 서술형</span>
+    </div>
+    <div class="prompt">모델 성능을 향상시키기 위한 실험 설계안을 제시하라. (하이퍼파라미터 튜닝, 교차검증, 특징 공학 등 최소 3가지 전략 포함)</div>
+    <textarea class="answer-area descriptive" placeholder="답을 입력하세요"></textarea>
+  </li>
+</ol>
+</body>
+</html>
