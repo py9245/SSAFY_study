@@ -2,21 +2,260 @@
 <html lang='ko'>
 <head>
 <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>모의고사 2 - 데이터 전처리와 통계</title>
 <style>
-body { font-family: 'Segoe UI', 'Noto Sans KR', sans-serif; margin: 32px; background:#f6f8fb; color:#222; line-height:1.6; }
-h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
-h2 { margin-top: 2.2rem; border-bottom: 2px solid #d0d7e3; padding-bottom: 0.4rem; }
-section.meta { background:#fff; border:1px solid #d0d7e3; border-radius:10px; padding:1.2rem; margin-bottom:1.6rem; }
-.question { background:#fff; border:1px solid #d7deeb; border-left:6px solid #4a6fa5; padding:1.1rem; border-radius:8px; margin-bottom:1.1rem; }
-.question-meta { font-size:0.85rem; color:#52627a; display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem; }
-ol.options { margin-top:0.5rem; padding-left:1.6rem; }
-ol.options li { margin-bottom:0.45rem; }
-table.confusion { border-collapse:collapse; margin-top:0.6rem; }
-table.confusion th, table.confusion td { border:1px solid #aeb9cf; padding:0.45rem 0.8rem; text-align:center; background:#fff; }
-.note { margin-top:0.5rem; font-size:0.85rem; color:#5a6a82; }
-.answer-line, .essay-area { margin-top:0.8rem; border:1px dashed #90a1bc; background:#fdfdff; min-height:2.4rem; padding:0.6rem; }
-.essay-area { min-height:6rem; }
+:root {
+  --accent: #2c4a78;
+  --correct: #1b8a5a;
+  --incorrect: #d6455d;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 18px rgba(18, 42, 88, 0.12);
+  --card-shadow-strong: 0 6px 22px rgba(18, 42, 88, 0.18);
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  font-family: "Segoe UI", "Nanum Gothic", "Apple SD Gothic Neo", sans-serif;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 28px 18px 80px;
+  background: #f5f7fb;
+  color: #1f2d3d;
+  line-height: 1.65;
+}
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 0 12px;
+}
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 2.6vw + 1rem, 2.25rem);
+  color: #1a2945;
+}
+.info {
+  font-size: 0.95rem;
+  color: #4f5d78;
+  margin-bottom: 4px;
+}
+.question-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.question {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.question.is-correct {
+  box-shadow: 0 10px 26px rgba(27, 138, 90, 0.22);
+}
+.question.is-incorrect {
+  box-shadow: 0 10px 26px rgba(214, 69, 93, 0.18);
+}
+.q-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.q-number {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.q-tags {
+  font-size: 0.9rem;
+  color: #5d6f92;
+}
+.prompt {
+  margin-bottom: 16px;
+  word-break: keep-all;
+  white-space: pre-line;
+}
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.options li {
+  background: #f7f9fc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.options li:hover {
+  background: #eef3fb;
+  transform: translateY(-1px);
+}
+.options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+}
+.options input[type="radio"] {
+  accent-color: var(--accent);
+  transform: scale(1.1);
+}
+textarea.answer-area {
+  margin-top: 12px;
+  border: 1px solid #c5d1e3;
+  border-radius: 14px;
+  background: #ffffff;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 72px;
+  font-family: inherit;
+  resize: vertical;
+}
+textarea.answer-area.short {
+  min-height: 64px;
+}
+textarea.answer-area.descriptive {
+  min-height: 170px;
+}
+textarea.answer-area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(44, 74, 120, 0.16);
+  outline: none;
+}
+.action-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.action-button {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(44, 74, 120, 0.26);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease;
+}
+.action-button.secondary {
+  background: #62759c;
+}
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(44, 74, 120, 0.3);
+}
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(44, 74, 120, 0.22);
+}
+.feedback {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(44, 74, 120, 0.08);
+  border-left: 4px solid rgba(44, 74, 120, 0.45);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+.feedback.visible {
+  display: flex;
+}
+.feedback.correct {
+  background: rgba(27, 138, 90, 0.12);
+  border-color: var(--correct);
+  color: #1d6b46;
+}
+.feedback.incorrect {
+  background: rgba(214, 69, 93, 0.12);
+  border-color: var(--incorrect);
+  color: #8f2f3d;
+}
+.feedback strong {
+  font-weight: 700;
+}
+.feedback .answer-line {
+  font-weight: 600;
+}
+.feedback .explanation-line {
+  color: #2a374f;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7891;
+}
+@media (max-width: 900px) {
+  body {
+    padding: 24px 16px 72px;
+  }
+  .question {
+    padding: 20px 18px;
+  }
+}
+@media (max-width: 600px) {
+  body {
+    padding: 20px 14px 64px;
+  }
+  header {
+    margin-bottom: 26px;
+  }
+  .q-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .options {
+    gap: 8px;
+  }
+  .options li {
+    padding: 10px 12px;
+  }
+  .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 420px) {
+  body {
+    padding: 18px 12px 56px;
+  }
+  .question {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+  .options label {
+    font-size: 0.92rem;
+  }
+  textarea.answer-area {
+    font-size: 0.92rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -78,4 +317,260 @@ table.confusion th, table.confusion td { border:1px solid #aeb9cf; padding:0.45r
 <div class='question' id='q48'><div class='question-meta'><span>문제 48</span><span>서답형</span><span>난이도 3</span></div><p>정규화(Normalization)와 표준화(Standardization)의 차이와 활용 시점을 비교하시오.</p><div class='essay-area'></div></div>
 <div class='question' id='q49'><div class='question-meta'><span>문제 49</span><span>서답형</span><span>난이도 3</span></div><p>범주형 변수를 인코딩할 때 고려해야 할 사항과 대표 기법을 설명하시오.</p><div class='essay-area'></div></div>
 <div class='question' id='q50'><div class='question-meta'><span>문제 50</span><span>서답형</span><span>난이도 3</span></div><p>통계적 가설검정 절차를 실제 예시와 함께 단계별로 설명하시오.</p><div class='essay-area'></div></div>
-</body></html>
+<script>
+  window.EXAM_ANSWER_DATA = {
+  "1": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (49+44)/112 = 0.83"
+  },
+  "2": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (74+81)/178 = 0.87"
+  },
+  "3": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (110+161)/322 = 0.84"
+  },
+  "4": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.75"
+  },
+  "5": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.79"
+  },
+  "6": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.83"
+  },
+  "7": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.82"
+  },
+  "8": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.78"
+  },
+  "9": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.70"
+  },
+  "10": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "특이도 = TN/(TN+FP) = 0.86"
+  },
+  "11": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.71"
+  },
+  "12": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.66"
+  },
+  "13": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.70"
+  },
+  "14": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "엔트로피 = -Σp log2 p = 0.89"
+  },
+  "15": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "엔트로피 = -Σp log2 p = 1.00"
+  },
+  "16": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "지니 불순도 = 1 - Σp^2 = 0.46"
+  },
+  "17": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "지니 불순도 = 1 - Σp^2 = 0.44"
+  },
+  "18": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "새 가중치 = 1.080 - 0.054×0.420 = 1.057"
+  },
+  "19": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "새 가중치 = -0.670 - 0.011×-1.890 = -0.650"
+  },
+  "20": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "σ(z) = 1/(1+e^-z) = 0.63"
+  },
+  "21": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "중앙값은 이상치의 영향을 덜 받아 안정적으로 결측치를 대체할 수 있다."
+  },
+  "22": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": "로그 변환은 오른쪽으로 치우친 분포를 안정화하고 분산을 줄이는 데 유용하다."
+  },
+  "23": {
+    "type": "객관식",
+    "answer": "D",
+    "explanation": "박스플롯의 상자 윗변은 상위 25% 지점을 나타내는 3사분위수이다."
+  },
+  "24": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "상관계수가 0.9이면 선형적으로 매우 강한 양의 관계가 있음을 의미한다."
+  },
+  "25": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "Z-score 표준화는 (x-μ)/σ로 데이터를 평균 0, 표준편차 1로 맞춘다."
+  },
+  "26": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "카이제곱 독립성 검정은 범주형 변수 간의 독립 여부를 판단한다."
+  },
+  "27": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "Q-Q Plot은 데이터 분위수를 이론적 정규분포와 비교해 정규성을 확인한다."
+  },
+  "28": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "일반적으로 1.5*IQR 범위를 벗어나면 이상치로 간주한다."
+  },
+  "29": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": "VIF 값이 높을수록 해당 변수와 다른 변수 사이의 공선성이 크다는 뜻이다."
+  },
+  "30": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "Z-score 표준화를 적용하면 평균은 0, 표준편차는 1이 된다."
+  },
+  "31": {
+    "type": "단답형",
+    "answer": "0.67",
+    "explanation": "F1 = 2PR/(P+R) = 0.67"
+  },
+  "32": {
+    "type": "단답형",
+    "answer": "-0.530",
+    "explanation": "새 가중치 = -0.530"
+  },
+  "33": {
+    "type": "단답형",
+    "answer": "0.50",
+    "explanation": "(x-min)/(max-min) = 0.50"
+  },
+  "34": {
+    "type": "단답형",
+    "answer": "7",
+    "explanation": "제거된 차원 수 = 7"
+  },
+  "35": {
+    "type": "단답형",
+    "answer": "5",
+    "explanation": "폴드 하나를 검증에 사용하므로 훈련 폴드는 5개입니다."
+  },
+  "36": {
+    "type": "단답형",
+    "answer": "0.35",
+    "explanation": "σ(z) = 0.35"
+  },
+  "37": {
+    "type": "단답형",
+    "answer": "0.78",
+    "explanation": "정밀도 = 0.78"
+  },
+  "38": {
+    "type": "단답형",
+    "answer": "0.37",
+    "explanation": "(1-1/n)^n ≈ 0.37"
+  },
+  "39": {
+    "type": "단답형",
+    "answer": "378",
+    "explanation": "정확 분류 수 = 378"
+  },
+  "40": {
+    "type": "단답형",
+    "answer": "0.12",
+    "explanation": "λ·Σw^2 = 0.12"
+  },
+  "41": {
+    "type": "단답형",
+    "answer": "1.67",
+    "explanation": "MAE = 1.67"
+  },
+  "42": {
+    "type": "단답형",
+    "answer": "9.00",
+    "explanation": "표본 분산 = 9.00"
+  },
+  "43": {
+    "type": "단답형",
+    "answer": "0.99",
+    "explanation": "엔트로피 = 0.99"
+  },
+  "44": {
+    "type": "단답형",
+    "answer": "양성",
+    "explanation": "양성 득표수가 5이므로 결과는 양성입니다."
+  },
+  "45": {
+    "type": "단답형",
+    "answer": "1.44",
+    "explanation": "Z = (x-μ)/σ = 1.44"
+  },
+  "46": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "결측 패턴, 변수 유형, 비율을 고려해야 함을 설명하고 평균/중앙값 대체, KNN 대체, 다중 대체(MICE) 등의 장단점을 비교한다."
+  },
+  "47": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "이상치와 영향 관측치의 차이를 정의하고 IQR·Z-score·Cook's Distance 등의 절차와 처리 전략을 기술한다."
+  },
+  "48": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "두 방법의 정의와 목적을 구분하고, 거리 기반 모델, 통계 모델, 신경망 등에서의 활용 예시를 제시한다."
+  },
+  "49": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "희소성, 순서성, 타깃과의 관계를 고려해야 함을 설명하고 원-핫, 타깃, 빈도 인코딩 등의 특성을 비교한다."
+  },
+  "50": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "귀무/대립가설 설정, 유의수준 선정, 검정 통계량 계산, p-value 해석, 결론 도출까지의 절차를 예시와 함께 정리한다."
+  }
+};
+</script>
+<script src="../exam-interactive.js"></script>
+</body>
+</html>
