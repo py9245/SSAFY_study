@@ -1,15 +1,17 @@
-git clone https://lab.ssafy.com/py9245/django_ws_10_1
-git clone https://lab.ssafy.com/py9245/django_ws_10_a
-git clone https://lab.ssafy.com/py9245/django_ws_10_b
-git clone https://lab.ssafy.com/py9245/django_ws_10_c
-git clone https://lab.ssafy.com/py9245/django_ws_10_1
-git clone https://lab.ssafy.com/py9245/django_ws_10_2
-git clone https://lab.ssafy.com/py9245/django_ws_10_3
-git clone https://lab.ssafy.com/py9245/django_ws_10_4
-git clone https://lab.ssafy.com/py9245/django_ws_10_5
-git clone https://lab.ssafy.com/py9245/django_hw_10_4
-git clone https://lab.ssafy.com/py9245/django_hw_10_2
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_1
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_a
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_b
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_c
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_1
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_2
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_3
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_4
+git clone https://lab.ssafy.com/py9245/javascript_ws_1_5
+git clone https://lab.ssafy.com/py9245/javascript_hw_1_4
+git clone https://lab.ssafy.com/py9245/javascript_hw_1_2
 
+
+https://lab.ssafy.com/py9245/javascript_ws_1_a
 
 git config --global user.name "py9245"
 git config --global user.email "py9245@naver.com"
@@ -23,3 +25,28 @@ git commit --date="2025-08-31 12:00:00" -m "wqdqwdwq"
 
 
 175.209.203.213/32, 220.120.35.152/32, 175.209.203.214/32
+
+for dir in */ ; do
+    if [ -d "$dir/.git" ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "📌 Git repo: $dir"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        cd "$dir"
+
+        git add .
+        git commit -m "update" 2>/dev/null
+
+        if [ $? -eq 0 ]; then
+            echo "🚀 pushing..."
+            git push
+        else
+            echo "⚠️ Nothing to commit in $dir"
+        fi
+
+        cd ..
+        echo ""
+    fi
+done
+
+echo "✅ ALL DONE!"
