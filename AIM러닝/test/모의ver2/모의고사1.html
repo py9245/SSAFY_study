@@ -2,21 +2,260 @@
 <html lang='ko'>
 <head>
 <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>모의고사 1 - 머신러닝 기초</title>
 <style>
-body { font-family: 'Segoe UI', 'Noto Sans KR', sans-serif; margin: 32px; background:#f6f8fb; color:#222; line-height:1.6; }
-h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
-h2 { margin-top: 2.2rem; border-bottom: 2px solid #d0d7e3; padding-bottom: 0.4rem; }
-section.meta { background:#fff; border:1px solid #d0d7e3; border-radius:10px; padding:1.2rem; margin-bottom:1.6rem; }
-.question { background:#fff; border:1px solid #d7deeb; border-left:6px solid #4a6fa5; padding:1.1rem; border-radius:8px; margin-bottom:1.1rem; }
-.question-meta { font-size:0.85rem; color:#52627a; display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem; }
-ol.options { margin-top:0.5rem; padding-left:1.6rem; }
-ol.options li { margin-bottom:0.45rem; }
-table.confusion { border-collapse:collapse; margin-top:0.6rem; }
-table.confusion th, table.confusion td { border:1px solid #aeb9cf; padding:0.45rem 0.8rem; text-align:center; background:#fff; }
-.note { margin-top:0.5rem; font-size:0.85rem; color:#5a6a82; }
-.answer-line, .essay-area { margin-top:0.8rem; border:1px dashed #90a1bc; background:#fdfdff; min-height:2.4rem; padding:0.6rem; }
-.essay-area { min-height:6rem; }
+:root {
+  --accent: #2c4a78;
+  --correct: #1b8a5a;
+  --incorrect: #d6455d;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 18px rgba(18, 42, 88, 0.12);
+  --card-shadow-strong: 0 6px 22px rgba(18, 42, 88, 0.18);
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  font-family: "Segoe UI", "Nanum Gothic", "Apple SD Gothic Neo", sans-serif;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 28px 18px 80px;
+  background: #f5f7fb;
+  color: #1f2d3d;
+  line-height: 1.65;
+}
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 0 12px;
+}
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 2.6vw + 1rem, 2.25rem);
+  color: #1a2945;
+}
+.info {
+  font-size: 0.95rem;
+  color: #4f5d78;
+  margin-bottom: 4px;
+}
+.question-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.question {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.question.is-correct {
+  box-shadow: 0 10px 26px rgba(27, 138, 90, 0.22);
+}
+.question.is-incorrect {
+  box-shadow: 0 10px 26px rgba(214, 69, 93, 0.18);
+}
+.q-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.q-number {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.q-tags {
+  font-size: 0.9rem;
+  color: #5d6f92;
+}
+.prompt {
+  margin-bottom: 16px;
+  word-break: keep-all;
+  white-space: pre-line;
+}
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.options li {
+  background: #f7f9fc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.options li:hover {
+  background: #eef3fb;
+  transform: translateY(-1px);
+}
+.options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+}
+.options input[type="radio"] {
+  accent-color: var(--accent);
+  transform: scale(1.1);
+}
+textarea.answer-area {
+  margin-top: 12px;
+  border: 1px solid #c5d1e3;
+  border-radius: 14px;
+  background: #ffffff;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 72px;
+  font-family: inherit;
+  resize: vertical;
+}
+textarea.answer-area.short {
+  min-height: 64px;
+}
+textarea.answer-area.descriptive {
+  min-height: 170px;
+}
+textarea.answer-area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(44, 74, 120, 0.16);
+  outline: none;
+}
+.action-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.action-button {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(44, 74, 120, 0.26);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease;
+}
+.action-button.secondary {
+  background: #62759c;
+}
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(44, 74, 120, 0.3);
+}
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(44, 74, 120, 0.22);
+}
+.feedback {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(44, 74, 120, 0.08);
+  border-left: 4px solid rgba(44, 74, 120, 0.45);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+.feedback.visible {
+  display: flex;
+}
+.feedback.correct {
+  background: rgba(27, 138, 90, 0.12);
+  border-color: var(--correct);
+  color: #1d6b46;
+}
+.feedback.incorrect {
+  background: rgba(214, 69, 93, 0.12);
+  border-color: var(--incorrect);
+  color: #8f2f3d;
+}
+.feedback strong {
+  font-weight: 700;
+}
+.feedback .answer-line {
+  font-weight: 600;
+}
+.feedback .explanation-line {
+  color: #2a374f;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7891;
+}
+@media (max-width: 900px) {
+  body {
+    padding: 24px 16px 72px;
+  }
+  .question {
+    padding: 20px 18px;
+  }
+}
+@media (max-width: 600px) {
+  body {
+    padding: 20px 14px 64px;
+  }
+  header {
+    margin-bottom: 26px;
+  }
+  .q-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .options {
+    gap: 8px;
+  }
+  .options li {
+    padding: 10px 12px;
+  }
+  .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 420px) {
+  body {
+    padding: 18px 12px 56px;
+  }
+  .question {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+  .options label {
+    font-size: 0.92rem;
+  }
+  textarea.answer-area {
+    font-size: 0.92rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -78,4 +317,260 @@ table.confusion th, table.confusion td { border:1px solid #aeb9cf; padding:0.45r
 <div class='question' id='q48'><div class='question-meta'><span>문제 48</span><span>서답형</span><span>난이도 3</span></div><p>정형 데이터와 비정형 데이터의 차이를 설명하고, 각 데이터 유형에서 자주 사용하는 전처리 방법을 예시와 함께 제시하시오.</p><div class='essay-area'></div></div>
 <div class='question' id='q49'><div class='question-meta'><span>문제 49</span><span>서답형</span><span>난이도 3</span></div><p>앙상블 학습이 단일 모델 대비 갖는 장점과 실제 서비스에 적용할 때 고려해야 할 점을 설명하시오.</p><div class='essay-area'></div></div>
 <div class='question' id='q50'><div class='question-meta'><span>문제 50</span><span>서답형</span><span>난이도 3</span></div><p>머신러닝 프로젝트에서 데이터 준비부터 모델 평가까지의 표준 파이프라인을 단계별로 요약하고, 각 단계에서 주의할 점을 간단히 서술하시오.</p><div class='essay-area'></div></div>
-</body></html>
+<script>
+  window.EXAM_ANSWER_DATA = {
+  "1": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (45+40)/100 = 0.85"
+  },
+  "2": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (70+77)/166 = 0.89"
+  },
+  "3": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (106+157)/310 = 0.85"
+  },
+  "4": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.76"
+  },
+  "5": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.80"
+  },
+  "6": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.85"
+  },
+  "7": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.83"
+  },
+  "8": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.78"
+  },
+  "9": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.70"
+  },
+  "10": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "특이도 = TN/(TN+FP) = 0.89"
+  },
+  "11": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.69"
+  },
+  "12": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.64"
+  },
+  "13": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.68"
+  },
+  "14": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "엔트로피 = -Σp log2 p = 0.88"
+  },
+  "15": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "엔트로피 = -Σp log2 p = 0.99"
+  },
+  "16": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "지니 불순도 = 1 - Σp^2 = 0.45"
+  },
+  "17": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "지니 불순도 = 1 - Σp^2 = 0.43"
+  },
+  "18": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "새 가중치 = 0.960 - 0.050×0.400 = 0.940"
+  },
+  "19": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "새 가중치 = -0.790 - 0.010×-1.800 = -0.772"
+  },
+  "20": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "σ(z) = 1/(1+e^-z) = 0.57"
+  },
+  "21": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "지도학습은 입력과 정답 레이블 쌍을 사용해 목표 함수를 학습한다."
+  },
+  "22": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": "회귀 문제는 연속값 예측이므로 예측 오차의 제곱 평균 등을 활용한다."
+  },
+  "23": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "과적합은 훈련 데이터에는 정확하지만 새로운 데이터에서는 오차가 커지는 현상이다."
+  },
+  "24": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": "배깅은 부트스트랩 샘플로 여러 기본 모델을 학습하고 다수결 또는 평균으로 결합한다."
+  },
+  "25": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "시그모이드를 사용하므로 출력 확률은 0과 1 사이로 제한된다."
+  },
+  "26": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "학습률이 너무 크면 기울기 업데이트가 과격해져 발산하거나 진동하기 쉽다."
+  },
+  "27": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "L2 정규화는 가중치 제곱합을 손실에 더해 큰 가중치를 억제한다."
+  },
+  "28": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": "KNN은 이웃 수 k에 따라 결정 경계가 바뀌므로 핵심 하이퍼파라미터이다."
+  },
+  "29": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": "커널 트릭을 통해 고차원으로 매핑하면 선형 분리가 가능해진다."
+  },
+  "30": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "교차 검증은 다양한 분할에 대해 검증 성능을 측정해 일반화 능력을 평가한다."
+  },
+  "31": {
+    "type": "단답형",
+    "answer": "0.62",
+    "explanation": "F1 = 2PR/(P+R) = 0.62"
+  },
+  "32": {
+    "type": "단답형",
+    "answer": "0.980",
+    "explanation": "새 가중치 = 0.980"
+  },
+  "33": {
+    "type": "단답형",
+    "answer": "0.67",
+    "explanation": "(x-min)/(max-min) = 0.67"
+  },
+  "34": {
+    "type": "단답형",
+    "answer": "6",
+    "explanation": "제거된 차원 수 = 6"
+  },
+  "35": {
+    "type": "단답형",
+    "answer": "9",
+    "explanation": "폴드 하나를 검증에 사용하므로 훈련 폴드는 9개입니다."
+  },
+  "36": {
+    "type": "단답형",
+    "answer": "0.57",
+    "explanation": "σ(z) = 0.57"
+  },
+  "37": {
+    "type": "단답형",
+    "answer": "0.90",
+    "explanation": "정밀도 = 0.90"
+  },
+  "38": {
+    "type": "단답형",
+    "answer": "0.37",
+    "explanation": "(1-1/n)^n ≈ 0.37"
+  },
+  "39": {
+    "type": "단답형",
+    "answer": "225",
+    "explanation": "정확 분류 수 = 225"
+  },
+  "40": {
+    "type": "단답형",
+    "answer": "2.50",
+    "explanation": "λ·Σw^2 = 2.50"
+  },
+  "41": {
+    "type": "단답형",
+    "answer": "1.00",
+    "explanation": "MAE = 1.00"
+  },
+  "42": {
+    "type": "단답형",
+    "answer": "5.00",
+    "explanation": "모집단 분산 = 5.00"
+  },
+  "43": {
+    "type": "단답형",
+    "answer": "0.72",
+    "explanation": "엔트로피 = 0.72"
+  },
+  "44": {
+    "type": "단답형",
+    "answer": "양성",
+    "explanation": "양성 득표수가 3이므로 결과는 양성입니다."
+  },
+  "45": {
+    "type": "단답형",
+    "answer": "2.00",
+    "explanation": "Z = (x-μ)/σ = 2.00"
+  },
+  "46": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "훈련/검증 손실 곡선을 비교해 과적합을 감지하고, 조기 종료, 정규화(L1/L2), 드롭아웃, 데이터 증강 등의 전략을 근거와 함께 서술한다."
+  },
+  "47": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "거리 기반 모델과 경사 하강법의 안정성을 위해 스케일링이 필요한 이유를 제시하고, 두 방식의 적용 시점과 장단점을 비교한다."
+  },
+  "48": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "정형/비정형 데이터의 구조를 비교하고, 표준화·원핫인코딩·토큰화·데이터 증강 등 전처리 방법을 도메인 사례와 함께 기술한다."
+  },
+  "49": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "배깅/부스팅을 통한 분산 감소와 성능 향상 장점을 쓰고, 추론 지연·리소스·운영 복잡성을 고려해야 함을 설명한다."
+  },
+  "50": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "데이터 수집, 탐색, 전처리, 특징 엔지니어링, 모델 학습, 튜닝, 평가/배포까지 단계별 핵심 포인트를 정리한다."
+  }
+};
+</script>
+<script src="../exam-interactive.js"></script>
+</body>
+</html>

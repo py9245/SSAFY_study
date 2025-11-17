@@ -2,17 +2,260 @@
 <html lang='ko'>
 <head>
 <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>모의고사 4 - 딥러닝 시스템 운영</title>
 <style>
-body { font-family: 'Segoe UI', 'Noto Sans KR', sans-serif; margin: 32px; background:#f6f8fb; color:#222; line-height:1.6; }
-h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
-section.meta { background:#fff; border:1px solid #d0d7e3; border-radius:10px; padding:1.3rem; margin-bottom:1.6rem; }
-.question { background:#fff; border:1px solid #d7deeb; border-left:6px solid #4a6fa5; padding:1.1rem; border-radius:8px; margin-bottom:1.1rem; }
-.question-meta { font-size:0.85rem; color:#52627a; display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem; }
-ol.options { margin-top:0.5rem; padding-left:1.6rem; }
-ol.options li { margin-bottom:0.5rem; }
-textarea.short-answer { width:100%; min-height:3.4rem; border:1px dashed #9aa5bd; border-radius:6px; padding:0.6rem; background:#fbfcff; }
-textarea.essay-answer { width:100%; min-height:7rem; border:1px dashed #9aa5bd; border-radius:6px; padding:0.6rem; background:#fbfcff; }
+:root {
+  --accent: #2c4a78;
+  --correct: #1b8a5a;
+  --incorrect: #d6455d;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 18px rgba(18, 42, 88, 0.12);
+  --card-shadow-strong: 0 6px 22px rgba(18, 42, 88, 0.18);
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  font-family: "Segoe UI", "Nanum Gothic", "Apple SD Gothic Neo", sans-serif;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 28px 18px 80px;
+  background: #f5f7fb;
+  color: #1f2d3d;
+  line-height: 1.65;
+}
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 0 12px;
+}
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 2.6vw + 1rem, 2.25rem);
+  color: #1a2945;
+}
+.info {
+  font-size: 0.95rem;
+  color: #4f5d78;
+  margin-bottom: 4px;
+}
+.question-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.question {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.question.is-correct {
+  box-shadow: 0 10px 26px rgba(27, 138, 90, 0.22);
+}
+.question.is-incorrect {
+  box-shadow: 0 10px 26px rgba(214, 69, 93, 0.18);
+}
+.q-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.q-number {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.q-tags {
+  font-size: 0.9rem;
+  color: #5d6f92;
+}
+.prompt {
+  margin-bottom: 16px;
+  word-break: keep-all;
+  white-space: pre-line;
+}
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.options li {
+  background: #f7f9fc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.options li:hover {
+  background: #eef3fb;
+  transform: translateY(-1px);
+}
+.options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+}
+.options input[type="radio"] {
+  accent-color: var(--accent);
+  transform: scale(1.1);
+}
+textarea.answer-area {
+  margin-top: 12px;
+  border: 1px solid #c5d1e3;
+  border-radius: 14px;
+  background: #ffffff;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 72px;
+  font-family: inherit;
+  resize: vertical;
+}
+textarea.answer-area.short {
+  min-height: 64px;
+}
+textarea.answer-area.descriptive {
+  min-height: 170px;
+}
+textarea.answer-area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(44, 74, 120, 0.16);
+  outline: none;
+}
+.action-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.action-button {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(44, 74, 120, 0.26);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease;
+}
+.action-button.secondary {
+  background: #62759c;
+}
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(44, 74, 120, 0.3);
+}
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(44, 74, 120, 0.22);
+}
+.feedback {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(44, 74, 120, 0.08);
+  border-left: 4px solid rgba(44, 74, 120, 0.45);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+.feedback.visible {
+  display: flex;
+}
+.feedback.correct {
+  background: rgba(27, 138, 90, 0.12);
+  border-color: var(--correct);
+  color: #1d6b46;
+}
+.feedback.incorrect {
+  background: rgba(214, 69, 93, 0.12);
+  border-color: var(--incorrect);
+  color: #8f2f3d;
+}
+.feedback strong {
+  font-weight: 700;
+}
+.feedback .answer-line {
+  font-weight: 600;
+}
+.feedback .explanation-line {
+  color: #2a374f;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7891;
+}
+@media (max-width: 900px) {
+  body {
+    padding: 24px 16px 72px;
+  }
+  .question {
+    padding: 20px 18px;
+  }
+}
+@media (max-width: 600px) {
+  body {
+    padding: 20px 14px 64px;
+  }
+  header {
+    margin-bottom: 26px;
+  }
+  .q-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .options {
+    gap: 8px;
+  }
+  .options li {
+    padding: 10px 12px;
+  }
+  .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 420px) {
+  body {
+    padding: 18px 12px 56px;
+  }
+  .question {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+  .options label {
+    font-size: 0.92rem;
+  }
+  textarea.answer-area {
+    font-size: 0.92rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -375,4 +618,270 @@ textarea.essay-answer { width:100%; min-height:7rem; border:1px dashed #9aa5bd; 
 <p>의료 영상 판독 팀의 협업 워크플로 정비를 구축하는 방법을 설명하라.</p>
 <textarea class='essay-answer' placeholder='핵심 근거와 단계를 정리하세요'></textarea>
 </div>
-</body></html>
+<script>
+  window.EXAM_ANSWER_DATA = {
+  "1": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "2": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "3": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "4": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "5": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "6": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "7": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "8": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "9": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "10": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "11": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": ""
+  },
+  "12": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "13": {
+    "type": "객관식",
+    "answer": "D",
+    "explanation": ""
+  },
+  "14": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": ""
+  },
+  "15": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "16": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "17": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "18": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "19": {
+    "type": "객관식",
+    "answer": "C",
+    "explanation": ""
+  },
+  "20": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": ""
+  },
+  "21": {
+    "type": "주관식",
+    "answer": "최소 수집 원칙, 익명화/가명화, 접근 통제, 감사 로그와 같은 보호 체계를 마련해야 기상 재난 조기 경보 프로젝트가 규제를 준수한다.",
+    "explanation": ""
+  },
+  "22": {
+    "type": "주관식",
+    "answer": "목적, 데이터 출처, 편향 완화 계획, 이해관계자 영향 분석을 정리해 산업용 로봇 이상 탐지 프로젝트가 윤리 기준을 충족함을 입증해야 한다.",
+    "explanation": ""
+  },
+  "23": {
+    "type": "주관식",
+    "answer": "모델 가정, 데이터 한계, 의사결정 포인트를 공유하고 피드백 반영 프로세스를 마련해 헬스케어 진단 챗봇 전문 지식을 활용해야 한다.",
+    "explanation": ""
+  },
+  "24": {
+    "type": "주관식",
+    "answer": "데이터 소유권, 접근 권한, 품질 지표, 변경 관리 등 스마트 시티 범죄 예방 거버넌스 핵심 의제를 논의해야 한다.",
+    "explanation": ""
+  },
+  "25": {
+    "type": "주관식",
+    "answer": "응답 시간, 가용성, 성능 임계값, 지원 절차를 명시해 위험 물질 유출 감시 서비스 기대치를 이해관계자와 합의해야 한다.",
+    "explanation": ""
+  },
+  "26": {
+    "type": "주관식",
+    "answer": "데이터 수집 주기, 검수 기준, 승인 절차, 버전 관리 등을 정의해 해양 생태 관측 레이블 품질을 지속적으로 유지해야 한다.",
+    "explanation": ""
+  },
+  "27": {
+    "type": "주관식",
+    "answer": "피드백 수집·필터링 기준과 편향 모니터링을 준비해 에너지 설비 효율 개선 모델이 자기 강화 편향에 빠지지 않도록 해야 한다.",
+    "explanation": ""
+  },
+  "28": {
+    "type": "주관식",
+    "answer": "운영 데이터와 분리 보관, 사용 이력 추적, 무단 사용 금지를 지켜 커머스 추천 최적화 결과 검증의 독립성을 보장해야 한다.",
+    "explanation": ""
+  },
+  "29": {
+    "type": "주관식",
+    "answer": "사업 목표, 사용자 영향, 기술 지표, 측정 방법을 명확히 정의해 스마트 농업 질병 예측 프로젝트의 성공 기준을 합의해야 한다.",
+    "explanation": ""
+  },
+  "30": {
+    "type": "주관식",
+    "answer": "모델 기능, 한계, 장애 대응 절차, 연락 창구를 정리해 금융 상품 추천 운영팀이 이슈에 빠르게 대응할 수 있도록 해야 한다.",
+    "explanation": ""
+  },
+  "31": {
+    "type": "주관식",
+    "answer": "가상 시나리오 정의, 역할 분담, 복구 절차 검증, 사후 회고를 포함해 문서 요약 자동화 팀의 대응 역량을 높여야 한다.",
+    "explanation": ""
+  },
+  "32": {
+    "type": "주관식",
+    "answer": "실시간 트래픽 분기, 모니터링, 성능 비교, 자동화된 롤백 조건을 갖춰 음악 취향 분석 모델의 안정성을 검증해야 한다.",
+    "explanation": ""
+  },
+  "33": {
+    "type": "주관식",
+    "answer": "로그, 메트릭, 트레이스 지표와 사용자 행동 데이터를 수집해 항공 수요 예측 시스템의 상태를 실시간으로 파악할 수 있어야 한다.",
+    "explanation": ""
+  },
+  "34": {
+    "type": "주관식",
+    "answer": "지리 정보 기반 수요 예측 데이터의 기본 통계(분포, 범위, 결측치)와 수집 경로 및 품질 이상 징후를 먼저 파악해야 이후 전처리와 검증 전략을 설계할 수 있다.",
+    "explanation": ""
+  },
+  "35": {
+    "type": "주관식",
+    "answer": "고객 이탈 예측처럼 변수 규모 차이가 큰 데이터에서는 정규화로 학습 안정성과 수렴 속도를 확보하고 특정 특성에 대한 편향을 줄일 수 있다.",
+    "explanation": ""
+  },
+  "36": {
+    "type": "주관식",
+    "answer": "수집 시스템 로그, 설문/센서 오류, 패턴별 결측 비율 등 구조적 원인을 확인해야 신용 위험 평가 데이터의 결측을 적절히 대체할 수 있다.",
+    "explanation": ""
+  },
+  "37": {
+    "type": "주관식",
+    "answer": "카디널리티, 순서 정보 유무, 모델 유형을 고려해 원-핫, 타깃 인코딩 등 의료 영상 판독 도메인에 맞는 방식을 선택해야 과적합을 막을 수 있다.",
+    "explanation": ""
+  },
+  "38": {
+    "type": "주관식",
+    "answer": "시간 순서, 사용자 단위 누락 금지 등 누수 위험을 차단하고 제조 설비 이상 탐지 운영 환경과 유사한 분포를 유지하도록 분할해야 한다.",
+    "explanation": ""
+  },
+  "39": {
+    "type": "주관식",
+    "answer": "교차 검증은 샘플 편향을 줄여 일반화 성능을 추정하게 해주며, 온라인 광고 클릭 예측 데이터의 시계열·그룹 특성에 맞는 폴드 전략을 선택해야 한다.",
+    "explanation": ""
+  },
+  "40": {
+    "type": "주관식",
+    "answer": "탐색 공간과 예산을 정하고, 랜덤/베이지안 탐색 등으로 음성 감정 분석 성능 목표와 연동된 평가 지표를 최적화해야 한다.",
+    "explanation": ""
+  },
+  "41": {
+    "type": "주관식",
+    "answer": "재현성과 비교 가능성을 확보하기 위해 모든 난수 발생 지점을 문서화하고 공통 시드를 지정해야 에너지 수요 예측 실험 결과를 재검증할 수 있다.",
+    "explanation": ""
+  },
+  "42": {
+    "type": "주관식",
+    "answer": "배송 경로 최적화 맥락에서 중요도 계산 방법, 데이터 편향 가능성, 이해관계자가 해석할 수 있는 설명을 함께 제시해야 한다.",
+    "explanation": ""
+  },
+  "43": {
+    "type": "주관식",
+    "answer": "데이터 버전, 전처리 절차, 모델·라이브러리 버전, 하이퍼파라미터와 실험 환경을 기록해야 소셜 미디어 여론 분석 결과를 재현할 수 있다.",
+    "explanation": ""
+  },
+  "44": {
+    "type": "주관식",
+    "answer": "실험 목적, 하이퍼파라미터, 지표, 사용 데이터 버전, 노트 등을 로그로 남겨야 보험 사기 탐지 팀이 효율적으로 의사결정할 수 있다.",
+    "explanation": ""
+  },
+  "45": {
+    "type": "주관식",
+    "answer": "모델 아티팩트 이름 규칙, 메타데이터 기록, 배포 이력 관리 체계를 구축해야 스마트 팩토리 품질 검사 모델을 안전하게 교체할 수 있다.",
+    "explanation": ""
+  },
+  "46": {
+    "type": "서답형",
+    "answer": "1) 사용자 질문과 우려 사항을 조사한다.
+2) 설명 가능한 메시지와 FAQ를 준비한다.
+3) 변경 시점과 영향 범위를 공지하는 체계를 만든다.",
+    "explanation": ""
+  },
+  "47": {
+    "type": "서답형",
+    "answer": "1) 감사 범위와 필요 자료 목록을 정의한다.
+2) 데이터·모델·운영 로그를 사전에 정리한다.
+3) 개선 과제와 추적 계획을 수립한다.",
+    "explanation": ""
+  },
+  "48": {
+    "type": "서답형",
+    "answer": "1) 데이터 출처와 이용 조건을 파악한다.
+2) 계약 조항을 모델 운영 정책과 정합화한다.
+3) 준수 여부 모니터링과 갱신 프로세스를 마련한다.",
+    "explanation": ""
+  },
+  "49": {
+    "type": "서답형",
+    "answer": "1) 교육 대상과 학습 목표를 정의한다.
+2) 실제 사례와 우수 실천 기준을 반영한다.
+3) 평가와 피드백 절차로 지속 개선한다.",
+    "explanation": ""
+  },
+  "50": {
+    "type": "서답형",
+    "answer": "1) 역할과 승인 흐름을 명확히 한다.
+2) 공동 작업 도구와 표준 템플릿을 마련한다.
+3) 회고와 업데이트 주기를 설정한다.",
+    "explanation": ""
+  }
+};
+</script>
+<script src="../exam-interactive.js"></script>
+</body>
+</html>

@@ -2,21 +2,260 @@
 <html lang='ko'>
 <head>
 <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>모의고사 5 - 순환 신경망과 시계열</title>
 <style>
-body { font-family: 'Segoe UI', 'Noto Sans KR', sans-serif; margin: 32px; background:#f6f8fb; color:#222; line-height:1.6; }
-h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
-h2 { margin-top: 2.2rem; border-bottom: 2px solid #d0d7e3; padding-bottom: 0.4rem; }
-section.meta { background:#fff; border:1px solid #d0d7e3; border-radius:10px; padding:1.2rem; margin-bottom:1.6rem; }
-.question { background:#fff; border:1px solid #d7deeb; border-left:6px solid #4a6fa5; padding:1.1rem; border-radius:8px; margin-bottom:1.1rem; }
-.question-meta { font-size:0.85rem; color:#52627a; display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.5rem; }
-ol.options { margin-top:0.5rem; padding-left:1.6rem; }
-ol.options li { margin-bottom:0.45rem; }
-table.confusion { border-collapse:collapse; margin-top:0.6rem; }
-table.confusion th, table.confusion td { border:1px solid #aeb9cf; padding:0.45rem 0.8rem; text-align:center; background:#fff; }
-.note { margin-top:0.5rem; font-size:0.85rem; color:#5a6a82; }
-.answer-line, .essay-area { margin-top:0.8rem; border:1px dashed #90a1bc; background:#fdfdff; min-height:2.4rem; padding:0.6rem; }
-.essay-area { min-height:6rem; }
+:root {
+  --accent: #2c4a78;
+  --correct: #1b8a5a;
+  --incorrect: #d6455d;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 18px rgba(18, 42, 88, 0.12);
+  --card-shadow-strong: 0 6px 22px rgba(18, 42, 88, 0.18);
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  font-family: "Segoe UI", "Nanum Gothic", "Apple SD Gothic Neo", sans-serif;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 28px 18px 80px;
+  background: #f5f7fb;
+  color: #1f2d3d;
+  line-height: 1.65;
+}
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 0 12px;
+}
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 2.6vw + 1rem, 2.25rem);
+  color: #1a2945;
+}
+.info {
+  font-size: 0.95rem;
+  color: #4f5d78;
+  margin-bottom: 4px;
+}
+.question-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.question {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.question.is-correct {
+  box-shadow: 0 10px 26px rgba(27, 138, 90, 0.22);
+}
+.question.is-incorrect {
+  box-shadow: 0 10px 26px rgba(214, 69, 93, 0.18);
+}
+.q-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.q-number {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.q-tags {
+  font-size: 0.9rem;
+  color: #5d6f92;
+}
+.prompt {
+  margin-bottom: 16px;
+  word-break: keep-all;
+  white-space: pre-line;
+}
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.options li {
+  background: #f7f9fc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.options li:hover {
+  background: #eef3fb;
+  transform: translateY(-1px);
+}
+.options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+}
+.options input[type="radio"] {
+  accent-color: var(--accent);
+  transform: scale(1.1);
+}
+textarea.answer-area {
+  margin-top: 12px;
+  border: 1px solid #c5d1e3;
+  border-radius: 14px;
+  background: #ffffff;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #1f2d3d;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 72px;
+  font-family: inherit;
+  resize: vertical;
+}
+textarea.answer-area.short {
+  min-height: 64px;
+}
+textarea.answer-area.descriptive {
+  min-height: 170px;
+}
+textarea.answer-area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(44, 74, 120, 0.16);
+  outline: none;
+}
+.action-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.action-button {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(44, 74, 120, 0.26);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease;
+}
+.action-button.secondary {
+  background: #62759c;
+}
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(44, 74, 120, 0.3);
+}
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(44, 74, 120, 0.22);
+}
+.feedback {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(44, 74, 120, 0.08);
+  border-left: 4px solid rgba(44, 74, 120, 0.45);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+.feedback.visible {
+  display: flex;
+}
+.feedback.correct {
+  background: rgba(27, 138, 90, 0.12);
+  border-color: var(--correct);
+  color: #1d6b46;
+}
+.feedback.incorrect {
+  background: rgba(214, 69, 93, 0.12);
+  border-color: var(--incorrect);
+  color: #8f2f3d;
+}
+.feedback strong {
+  font-weight: 700;
+}
+.feedback .answer-line {
+  font-weight: 600;
+}
+.feedback .explanation-line {
+  color: #2a374f;
+}
+footer {
+  margin-top: 36px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7891;
+}
+@media (max-width: 900px) {
+  body {
+    padding: 24px 16px 72px;
+  }
+  .question {
+    padding: 20px 18px;
+  }
+}
+@media (max-width: 600px) {
+  body {
+    padding: 20px 14px 64px;
+  }
+  header {
+    margin-bottom: 26px;
+  }
+  .q-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .options {
+    gap: 8px;
+  }
+  .options li {
+    padding: 10px 12px;
+  }
+  .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (max-width: 420px) {
+  body {
+    padding: 18px 12px 56px;
+  }
+  .question {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+  .options label {
+    font-size: 0.92rem;
+  }
+  textarea.answer-area {
+    font-size: 0.92rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -78,4 +317,260 @@ table.confusion th, table.confusion td { border:1px solid #aeb9cf; padding:0.45r
 <div class='question' id='q48'><div class='question-meta'><span>문제 48</span><span>서답형</span><span>난이도 3</span></div><p>긴 시퀀스를 학습할 때 발생할 수 있는 문제와 해결책을 제시하시오.</p><div class='essay-area'></div></div>
 <div class='question' id='q49'><div class='question-meta'><span>문제 49</span><span>서답형</span><span>난이도 3</span></div><p>시계열 예측 모델의 성능을 평가하는 방법을 다양한 지표와 함께 설명하시오.</p><div class='essay-area'></div></div>
 <div class='question' id='q50'><div class='question-meta'><span>문제 50</span><span>서답형</span><span>난이도 3</span></div><p>제조 설비 이상 감지를 위한 RNN 기반 파이프라인을 설계하고 필요한 데이터를 설명하시오.</p><div class='essay-area'></div></div>
-</body></html>
+<script>
+  window.EXAM_ANSWER_DATA = {
+  "1": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (61+56)/148 = 0.79"
+  },
+  "2": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (86+93)/214 = 0.84"
+  },
+  "3": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정확도 = (TP+TN)/전체 = (122+173)/358 = 0.82"
+  },
+  "4": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.73"
+  },
+  "5": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.78"
+  },
+  "6": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "정밀도 = TP/(TP+FP) = 0.80"
+  },
+  "7": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.79"
+  },
+  "8": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.76"
+  },
+  "9": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "재현율 = TP/(TP+FN) = 0.69"
+  },
+  "10": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "특이도 = TN/(TN+FP) = 0.81"
+  },
+  "11": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.76"
+  },
+  "12": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.71"
+  },
+  "13": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "F1 = 2·P·R/(P+R) = 0.75"
+  },
+  "14": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "엔트로피 = -Σp log2 p = 0.92"
+  },
+  "15": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "엔트로피 = -Σp log2 p = 1.00"
+  },
+  "16": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "지니 불순도 = 1 - Σp^2 = 0.47"
+  },
+  "17": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "지니 불순도 = 1 - Σp^2 = 0.46"
+  },
+  "18": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "새 가중치 = 1.440 - 0.066×0.480 = 1.408"
+  },
+  "19": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "새 가중치 = -0.310 - 0.013×-2.160 = -0.281"
+  },
+  "20": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "σ(z) = 1/(1+e^-z) = 0.79"
+  },
+  "21": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "Forget Gate는 이전 셀 상태 중 유지할 정보와 버릴 정보를 결정한다."
+  },
+  "22": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "Teacher Forcing은 순환 모델 학습 시 이전 시점의 예측 대신 실제 정답을 입력으로 사용한다."
+  },
+  "23": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "Gradient Clipping은 기울기의 크기를 제한해 폭발하는 것을 막는다."
+  },
+  "24": {
+    "type": "객관식",
+    "answer": "A",
+    "explanation": "ACF/PACF를 통해 주기적 패턴을 확인할 수 있다."
+  },
+  "25": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "Padding Mask는 패딩 토큰이 어텐션 계산에 영향을 주지 않도록 한다."
+  },
+  "26": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "어텐션은 각 디코더 단계에서 중요한 인코더 정보를 가중합으로 활용한다."
+  },
+  "27": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "슬라이딩 윈도우는 일정 길이의 최근 데이터를 사용해 모델을 학습 및 업데이트한다."
+  },
+  "28": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "ARIMA는 정상성을 가정하므로 차분 등을 통해 정상성 여부를 확인해야 한다."
+  },
+  "29": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "MAPE, RMSE 등은 시계열 예측 오차를 평가하는 대표적인 지표이다."
+  },
+  "30": {
+    "type": "객관식",
+    "answer": "B",
+    "explanation": "양방향 RNN은 정방향과 역방향 정보를 동시에 활용해 문맥을 풍부하게 만든다."
+  },
+  "31": {
+    "type": "단답형",
+    "answer": "0.67",
+    "explanation": "F1 = 2PR/(P+R) = 0.67"
+  },
+  "32": {
+    "type": "단답형",
+    "answer": "1.371",
+    "explanation": "새 가중치 = 1.371"
+  },
+  "33": {
+    "type": "단답형",
+    "answer": "0.67",
+    "explanation": "(x-min)/(max-min) = 0.67"
+  },
+  "34": {
+    "type": "단답형",
+    "answer": "10",
+    "explanation": "제거된 차원 수 = 10"
+  },
+  "35": {
+    "type": "단답형",
+    "answer": "5",
+    "explanation": "폴드 하나를 검증에 사용하므로 훈련 폴드는 5개입니다."
+  },
+  "36": {
+    "type": "단답형",
+    "answer": "0.75",
+    "explanation": "σ(z) = 0.75"
+  },
+  "37": {
+    "type": "단답형",
+    "answer": "0.77",
+    "explanation": "정밀도 = 0.77"
+  },
+  "38": {
+    "type": "단답형",
+    "answer": "0.37",
+    "explanation": "(1-1/n)^n ≈ 0.37"
+  },
+  "39": {
+    "type": "단답형",
+    "answer": "498",
+    "explanation": "정확 분류 수 = 498"
+  },
+  "40": {
+    "type": "단답형",
+    "answer": "3.00",
+    "explanation": "λ·Σw^2 = 3.00"
+  },
+  "41": {
+    "type": "단답형",
+    "answer": "1.00",
+    "explanation": "MAE = 1.00"
+  },
+  "42": {
+    "type": "단답형",
+    "answer": "5.00",
+    "explanation": "모집단 분산 = 5.00"
+  },
+  "43": {
+    "type": "단답형",
+    "answer": "0.86",
+    "explanation": "엔트로피 = 0.86"
+  },
+  "44": {
+    "type": "단답형",
+    "answer": "양성",
+    "explanation": "양성 득표수가 3이므로 결과는 양성입니다."
+  },
+  "45": {
+    "type": "단답형",
+    "answer": "2.20",
+    "explanation": "Z = (x-μ)/σ = 2.20"
+  },
+  "46": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "각 게이트 구성과 파라미터 수 차이를 설명하고, 긴/짧은 시퀀스에서의 장단점을 비교한다."
+  },
+  "47": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "시간 순서를 보존한 분할, 롤링 평가, 누적 학습 전략 등을 다룬다."
+  },
+  "48": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "기울기 소실과 메모리 한계를 지적하고 어텐션, 트렁케이션, 계층적 모델 등 해결책을 설명한다."
+  },
+  "49": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "MAE, RMSE, MAPE, SMAPE 등 지표와 롤링 윈도우 평가 전략을 정리한다."
+  },
+  "50": {
+    "type": "서답형",
+    "answer": "서술형",
+    "explanation": "센서 시계열 수집, 이상 라벨링, 전처리, 모델 학습(오토인코더/분류기), 경보 기준 등을 제시한다."
+  }
+};
+</script>
+<script src="../exam-interactive.js"></script>
+</body>
+</html>
