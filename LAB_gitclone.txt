@@ -11,6 +11,8 @@ git clone https://lab.ssafy.com/py9245/javascript_hw_2_4
 git clone https://lab.ssafy.com/py9245/javascript_hw_2_2
 
 
+d
+
 https://lab.ssafy.com/py9245/javascript_ws_2_a
 
 git config --global user.name "py9245"
