@@ -1,19 +1,19 @@
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_1
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_a
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_b
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_c
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_1
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_2
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_3
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_4
-git clone https://lab.ssafy.com/py9245/javascript_ws_2_5
-git clone https://lab.ssafy.com/py9245/javascript_hw_2_4
-git clone https://lab.ssafy.com/py9245/javascript_hw_2_2
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_1
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_a
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_b
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_c
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_1
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_2
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_3
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_4
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_5
+git clone https://lab.ssafy.com/py9245/javascript_hw_5_4
+git clone https://lab.ssafy.com/py9245/javascript_hw_5_2
 
 
 d
 
-https://lab.ssafy.com/py9245/javascript_ws_2_a
+https://lab.ssafy.com/py9245/javascript_ws_5_a
 
 git config --global user.name "py9245"
 git config --global user.email "py9245@naver.com"
@@ -55,18 +55,18 @@ done
 echo "✅ ALL DONE!"
 
 
-javascript_ws_2_2, javascript_ws_2_3, javascript_ws_2_4 javascript_ws_2_5  폴더안의 이미지
+javascript_ws_5_2, javascript_ws_5_3, javascript_ws_5_4 javascript_ws_5_5  폴더안의 이미지
   파일들을 확인하고 요
     구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이고 각 폴에안에 어떻게 구현했는지
   md
     파일도 만들어줘 추 후 공부할 수 있게 내용도 정리해줘
 
-javascript_hw_2_2, javascript_hw_2_4, javascript_ws_2_1 폴더안의 이미지파일들을 확인하고 요
+javascript_hw_5_2, javascript_hw_5_4, javascript_ws_5_1 폴더안의 이미지파일들을 확인하고 요
     구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이고 각 폴에안에 어떻게 구현했는지
   md
     파일도 만들어줘 추 후 공부할 수 있게 내용도 정리해줘
 
-javascript_ws_2_a, javascript_ws_2_b, javascript_ws_2_c 폴더안의 이미지파일들을 확인하고 요
+javascript_ws_5_a, javascript_ws_5_b, javascript_ws_5_c 폴더안의 이미지파일들을 확인하고 요
     구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이고 각 폴에안에 어떻게 구현했는지
   md
     파일도 만들어줘 추 후 공부할 수 있게 내용도 정리해줘
