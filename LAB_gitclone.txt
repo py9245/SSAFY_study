@@ -24,7 +24,7 @@ git config --global user.email "gunha0606@naver.com"
 
 
 
-git commit --date="2025-08-31 12:00:00" -m "wqdqwdwq"
+git commit --date="2025-11-23 12:00:00" -m "wqdqwdwq"
 
 
 175.209.203.213/32, 220.120.35.152/32, 175.209.203.214/32
