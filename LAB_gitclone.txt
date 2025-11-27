@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 git clone https://lab.ssafy.com/py9245/vue_ex_3_1
 git clone https://lab.ssafy.com/py9245/vue_ex_3_2
 git clone https://lab.ssafy.com/py9245/vue_ex_3_3
@@ -12,6 +13,24 @@ git clone https://lab.ssafy.com/py9245/vue_hw_3_2
 
 
 
+=======
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_1
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_a
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_b
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_c
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_1
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_2
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_3
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_4
+git clone https://lab.ssafy.com/py9245/javascript_ws_5_5
+git clone https://lab.ssafy.com/py9245/javascript_hw_5_4
+git clone https://lab.ssafy.com/py9245/javascript_hw_5_2
+
+
+d
+
+https://lab.ssafy.com/py9245/javascript_ws_5_a
+>>>>>>> 884ab184e782cc183edb738a18868f73e5909e8e
 
 git config --global user.name "py9245"
 git config --global user.email "py9245@naver.com"
@@ -21,7 +40,8 @@ git config --global user.name "gunha0606"
 git config --global user.email "gunha0606@naver.com"
 
 
-git commit --date="2025-08-31 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-11-23 12:00:00" -m "wqdqwdwq"
 
 
 175.209.203.213/32, 220.120.35.152/32, 175.209.203.214/32
@@ -52,8 +72,26 @@ done
 echo "✅ ALL DONE!"
 
 
+<<<<<<< HEAD
 vue_ws_3_2, vue_ws_3_3, vue_ws_3_4, vue_ws_3_5  폴더안의 이미지 파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더들은 각기 다른 과제들이야
 
 vue_hw_3_2, vue_hw_3_4, vue_ws_3_1 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더들은 각기 다른 과제들이야
 
 vue_ex_3_1, vue_ex_3_2, vue_ex_3_2 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더들은 각기 다른 과제들이야
+=======
+javascript_ws_5_2, javascript_ws_5_3, javascript_ws_5_4 javascript_ws_5_5  폴더안의 이미지
+  파일들을 확인하고 요
+    구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이고 각 폴에안에 어떻게 구현했는지
+  md
+    파일도 만들어줘 추 후 공부할 수 있게 내용도 정리해줘
+
+javascript_hw_5_2, javascript_hw_5_4, javascript_ws_5_1 폴더안의 이미지파일들을 확인하고 요
+    구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이고 각 폴에안에 어떻게 구현했는지
+  md
+    파일도 만들어줘 추 후 공부할 수 있게 내용도 정리해줘
+
+javascript_ws_5_a, javascript_ws_5_b, javascript_ws_5_c 폴더안의 이미지파일들을 확인하고 요
+    구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이고 각 폴에안에 어떻게 구현했는지
+  md
+    파일도 만들어줘 추 후 공부할 수 있게 내용도 정리해줘
+>>>>>>> 884ab184e782cc183edb738a18868f73e5909e8e
