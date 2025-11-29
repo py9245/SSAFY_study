@@ -1,15 +1,15 @@
 
-git clone https://lab.ssafy.com/py9245/vue_ex_4_1
-git clone https://lab.ssafy.com/py9245/vue_ex_4_2
-git clone https://lab.ssafy.com/py9245/vue_ex_4_3
-git clone https://lab.ssafy.com/py9245/vue_ws_4_c
-git clone https://lab.ssafy.com/py9245/vue_ws_4_1
-git clone https://lab.ssafy.com/py9245/vue_ws_4_2
-git clone https://lab.ssafy.com/py9245/vue_ws_4_3
-git clone https://lab.ssafy.com/py9245/vue_ws_4_4
-git clone https://lab.ssafy.com/py9245/vue_ws_4_5
-git clone https://lab.ssafy.com/py9245/vue_hw_4_4
-git clone https://lab.ssafy.com/py9245/vue_hw_4_2
+git clone https://lab.ssafy.com/py9245/vue_ex_6_1
+git clone https://lab.ssafy.com/py9245/vue_ex_6_2
+git clone https://lab.ssafy.com/py9245/vue_ex_6_3
+git clone https://lab.ssafy.com/py9245/vue_ws_6_c
+git clone https://lab.ssafy.com/py9245/vue_ws_6_1
+git clone https://lab.ssafy.com/py9245/vue_ws_6_2
+git clone https://lab.ssafy.com/py9245/vue_ws_6_3
+git clone https://lab.ssafy.com/py9245/vue_ws_6_4
+git clone https://lab.ssafy.com/py9245/vue_ws_6_5
+git clone https://lab.ssafy.com/py9245/vue_hw_6_4
+git clone https://lab.ssafy.com/py9245/vue_hw_6_2
 
 
 
@@ -22,7 +22,19 @@ git config --global user.email "gunha0606@naver.com"
 
 
 
-git commit --date="2025-11-23 12:00:00" -m "wqdqwdwq"
+git commit --date="2025-11-29 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-11-30 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-12-04 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-12-06 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-12-07 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-12-08 12:00:00" -m "wqdqwdwq"
+
+git commit --date="2025-11-09 12:00:00" -m "wqdqwdwq"
 
 
 175.209.203.213/32, 220.120.35.152/32, 175.209.203.214/32
@@ -53,9 +65,9 @@ done
 echo "✅ ALL DONE!"
 
 
-vue_ws_4_2, vue_ws_4_3, vue_ws_4_4 vue_ws_4_5  폴더안의 이미지 파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
+vue_ws_6_2, vue_ws_6_3, vue_ws_6_4 vue_ws_6_5  폴더안의 이미지 파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
 
-vue_hw_4_2, vue_hw_4_4, vue_ws_4_1 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
+vue_hw_6_2, vue_hw_6_4, vue_ws_6_1 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
 
-vue_ex_4_1, vue_ex_4_2, vue_ex_4_3 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
+vue_ex_6_1, vue_ex_6_2, vue_ex_6_3 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
 
