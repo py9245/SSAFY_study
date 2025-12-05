@@ -1,3 +1,4 @@
+
 git clone https://lab.ssafy.com/py9245/vue_ex_4_1
 git clone https://lab.ssafy.com/py9245/vue_ex_4_2
 git clone https://lab.ssafy.com/py9245/vue_ex_4_3
@@ -11,8 +12,6 @@ git clone https://lab.ssafy.com/py9245/vue_hw_4_4
 git clone https://lab.ssafy.com/py9245/vue_hw_4_2
 
 
-
-https://lab.ssafy.com/py9245/vue_ws_4_a
 
 git config --global user.name "py9245"
 git config --global user.email "py9245@naver.com"
@@ -59,3 +58,4 @@ vue_ws_4_2, vue_ws_4_3, vue_ws_4_4 vue_ws_4_5  폴더안의 이미지 파일들�
 vue_hw_4_2, vue_hw_4_4, vue_ws_4_1 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
 
 vue_ex_4_1, vue_ex_4_2, vue_ex_4_3 폴더안의 이미지파일들을 확인하고 요구사항에 맞게 구현해줘 각 각 폴더드른 각기 다른 과제들이야
+
